@@ -1,0 +1,1036 @@
+\documentclass[11pt]{article}
+\input{macros}
+
+\title{A positive-density improvement over the odd numbers\\
+in Erd\H{o}s Problem 327}
+\author{Donald Della Pietra}
+\date{}
+\hypersetup{
+  pdftitle={A positive-density improvement over the odd numbers in Erdos Problem 327},
+  pdfauthor={Donald Della Pietra},
+  pdfsubject={Unit fractions and Erdos Problem 327},
+  pdfkeywords={unit fractions, multiplicative functions, anatomy of integers, Erdos Problem 327}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Let \(f_1(N)\) be the largest size of a set
+\(A\subseteq\{1,\ldots,N\}\) for which
+\(a+b\nmid ab\) whenever \(a,b\in A\) are distinct. The odd numbers show
+that \(f_1(N)\geq N/2+O(1)\). We prove that there is an absolute
+\(\varepsilon>0\) such that
+\[
+ f_1(N)\geq\left(\frac12+\varepsilon\right)N
+\]
+for every sufficiently large \(N\), giving a positive answer to the first
+question of Erd\H{o}s Problem 327.
+
+The construction begins with a positive-density set for the stronger
+condition \(a+b\nmid2ab\), following Sawin's orientation by the total number
+of prime factors. The new ingredient is to center the prime-factor anatomy
+at a fixed roughness cutoff and to impose distinct centered budgets at both
+ends of every odd-even conflict. A three-linear-form mean-value estimate then
+makes the mixed edge count smaller than the rough source by a power of
+\(\log L\). All cutoff-dependent Euler factors and both residual ranges are
+computed explicitly. The strict numerical parameter window is certified by
+rational interval arithmetic. An accompanying Lean~4 development gives an
+unconditional formal proof of the first conclusion and, separately, of
+Sawin's positive-density conclusion for \(a+b\nmid2ab\).
+\end{abstract}
+
+\section{Introduction}
+
+For \(k\geq1\), call a finite set \(A\) \(k\)-admissible if
+\[
+ a+b\nmid kab
+ \qquad(a,b\in A,\ a\ne b).
+\]
+Write
+\[
+ f_k(N)=\max\{\abs{A}:A\subseteq\{1,\ldots,N\},\
+ A\text{ is \(k\)-admissible}\}.
+\]
+Erd\H{o}s and Graham asked whether a \(1\)-admissible set can be
+``substantially more'' than the odd numbers, and whether every
+\(2\)-admissible set has size \(o(N)\)
+\cite[p.~37]{ErdosGraham1980}. In unit-fraction language,
+\(a+b\mid ab\) precisely when \(1/a+1/b\) is a unit fraction.
+
+Sawin recently answered the second question negatively by constructing
+\(2\)-admissible sets of positive density \cite{Sawin2026}. His paper also
+records a lower bound for the first question, but that bound is below the
+density \(1/2\) supplied by the odd numbers. The first question was still
+listed as open, with no proof claim in its discussion, when the present
+manuscript was prepared \cite{ErdosProblem327}.
+
+Our result is the following.
+
+\begin{theorem}\label{thm:main}
+There are absolute constants \(\varepsilon>0\) and \(N_0\) such that
+\[
+ f_1(N)\geq\left(\frac12+\varepsilon\right)N
+\]
+for every \(N\geq N_0\).
+\end{theorem}
+
+The source construction also gives an independent proof of Sawin's theorem:
+there is an absolute \(c>0\) such that \(f_2(N)\geq cN\) for every
+sufficiently large \(N\); see \cref{cor:second-conclusion}. Thus the paper and
+its formalization cover both questions in Problem~327, while the new
+mathematical conclusion is \cref{thm:main}.
+
+It is enough to prove a slightly more convenient even-endpoint form.
+
+\begin{theorem}\label{thm:even-form}
+There is an absolute \(\eta>0\) such that, for every sufficiently large
+\(N\), there is a \(1\)-admissible
+\(A_N\subseteq\{1,\ldots,2N\}\) with
+\[
+ \abs{A_N}\geq (1+\eta)N.
+\]
+\end{theorem}
+
+Indeed, apply \cref{thm:even-form} with
+\(N=\floor{X/2}\). For large \(X\), the resulting set lies in
+\(\{1,\ldots,X\}\) and has size at least
+\((1/2+\eta/4)X\).
+
+The construction has two layers. First we build a set
+\(B_N\subseteq[N/2,N]\) of size \(\gg N/\log L\) such that
+\[
+ b+d\nmid2bd\qquad(b,d\in B_N,\ b\ne d).
+\]
+Thus \(2B_N\) has no even-even conflict for the original divisibility
+condition. Second, we begin with almost every odd integer \(a\leq2N\) and
+delete those incident to a mixed conflict
+\[
+ a+2b\mid ab,\qquad b\in B_N.
+\]
+The main work is to make both the deleted odd set and the mixed edge set
+\(o_L(N/\log L)\), while \(B_N\gg N/\log L\).
+
+The centering
+\[
+ \Om_L(n,x)\leq
+ A\log\frac{\log x}{\log L}+K
+\]
+is essential. An \(L\)-rough number has spent no prime-factor budget below
+\(L\), and the subtraction of \(\log\log L\) is exactly what leaves a
+negative power of \(\log L\) after the dyadic sums.
+
+\section{Notation and analytic inputs}\label{sec:inputs}
+
+All logarithms are natural. Let \(\Om(n)\) denote the total number of prime
+factors of \(n\), counted with multiplicity. For real \(L>2\), put
+\[
+ \Om_L(n,x)=
+ \sum_{\substack{p^\nu\parallel n\\L\leq p\leq x}}\nu,
+\qquad
+ \rhoL=\prod_{p<L}\left(1-\frac1p\right).
+\]
+We say that \(n\) is \(L\)-rough when it has no prime divisor below \(L\);
+we set \(\Pmin(1)=+\infty\).
+
+We use two mean-value results. The first is the nonnegative
+multiplicative-function estimate quoted as Theorem III.3.5 by Tenenbaum
+\cite{Tenenbaum2015} and used in Sawin's Lemmas 4 and 5.
+
+\begin{proposition}[one-variable mean value]\label{prop:one-variable}
+Let \(g\) be a nonnegative multiplicative function. Suppose that, for all
+\(y\geq1\),
+\[
+ \sum_{p\leq y}g(p)\log p\leq C_1y
+\]
+and
+\[
+ \sum_p\sum_{\nu\geq2}
+ \frac{g(p^\nu)\log(p^\nu)}{p^\nu}\leq C_2.
+\]
+Then
+\[
+ \sum_{n\leq Y}g(n)
+ \ll (C_1+C_2+1)Y
+ \prod_{p\leq Y}
+ \left(1-\frac1p+
+       \sum_{\nu\geq1}\frac{g(p^\nu)}{p^\nu}\right),
+\]
+with an absolute implied constant.
+\end{proposition}
+
+The second input is Theorem 3.1 of de la Bret\`eche and Tenenbaum
+\cite{BretecheTenenbaum2026}. We only need its specialization to three fixed
+primitive linear forms in two variables. We record the features needed to
+make the cutoff uniformity transparent.
+
+Let \(Q_1,Q_2,Q_3\in\mathbb Z[U,V]\) be fixed, primitive, pairwise
+nonproportional linear forms. For a nonnegative multiplicative function
+\(F:\N^3\to\R_{\geq0}\), write \(F\in\mathcal M_3(1,1,\epsilon)\) if, whenever
+\((a_1a_2a_3,b_1b_2b_3)=1\),
+\[
+ F(a_1b_1,a_2b_2,a_3b_3)
+ \leq F(b_1,b_2,b_3).
+\]
+This is the special case of their class that we use.
+
+For a prime \(p\), let
+\[
+ \rho_Q^+(p)=
+ \#\{(u,v)\bmod p:p\mid Q_1(u,v)Q_2(u,v)Q_3(u,v)\}.
+\]
+The theorem supplies, on every box of side lengths comparable to \(X\),
+an upper bound of the form
+\begin{equation}\label{eq:dBT-shape}
+ \sum_{(u,v)\ \mathrm{in\ the\ box}}
+ F(Q_1(u,v),Q_2(u,v),Q_3(u,v))
+ \ll
+ X^2E_{F,Q}(C X)
+ \prod_{3<p\leq C X}
+ \left(1-\frac{\rho_Q^+(p)}{p^2}\right),
+\end{equation}
+where \(C\) depends only on the fixed box aspect ratio and the forms.
+The factor \(E_{F,Q}\) is a nonnegative truncated multiplicative sum.
+Consequently it is at most the product of its local prime-power factors.
+For the triples used below, a local pattern with exactly one positive
+valuation \(e\) has density
+\begin{equation}\label{eq:axis-density}
+ \frac{(1-p^{-1})^2}{p^e}
+\end{equation}
+at every odd prime, and patterns with exactly two positive valuations
+vanish. We calculate every remaining local weight explicitly in the two
+applications.
+
+The constant in \eqref{eq:dBT-shape} is uniform over
+\(F\in\mathcal M_3(1,1,\epsilon)\) once the forms, class parameters, and box
+aspect ratio are fixed. This is the uniformity that permits \(F\) to depend
+on the cutoff \(L\).
+
+\section{Centered prime-factor anatomy}\label{sec:tail}
+
+Call \(n\) \((L,A,K)\)-regular if
+\begin{equation}\label{eq:regular}
+ \Om_L(n,x)\leq
+ A\log\frac{\log x}{\log L}+K
+ \qquad(x\geq L).
+\end{equation}
+
+\begin{lemma}[centered maximal tail]\label{lem:centered-tail}
+Fix \(1<z<2\) and \(A>0\) with
+\[
+ A\log z>z-1.
+\]
+Uniformly for real \(L>2\), \(Y\geq1\), and \(K\geq0\),
+\[
+ \#\{n\leq Y:n\text{ is not \((L,A,K)\)-regular}\}
+ \ll_{A,z}Yz^{-K}.
+\]
+Among \(L\)-rough integers, the stronger bound
+\[
+ \#\{n\leq Y:\Pmin(n)\geq L,\
+ n\text{ is not regular}\}
+ \ll_{A,z}Y\rhoL z^{-K}
+\]
+holds with the same uniformity.
+\end{lemma}
+
+\begin{proof}
+Fix \(x\geq L\) and put \(X=\min(x,Y)\). Apply
+\cref{prop:one-variable} to
+\[
+ g(n)=z^{\Om_L(n,x)}.
+\]
+At \(L\leq p\leq X\), its Euler factor is
+\[
+ 1-\frac1p+\frac{z}{p-z}
+ =1+\frac{z-1}{p}+O_z(p^{-2}),
+\]
+while outside this range it is \(1+O(p^{-2})\). Because every weighted
+prime is at least \(3>z\), the prime-power tail is bounded uniformly in
+\(L,x\); the prime hypothesis follows from Chebyshev's estimate. Mertens'
+estimate gives
+\begin{equation}\label{eq:moment-unrestricted}
+ \sum_{n\leq Y}z^{\Om_L(n,x)}
+ \ll_z
+ Y\left(\frac{\log X}{\log L}\right)^{z-1}
+\end{equation}
+when \(L\leq Y\), with the ratio interpreted as \(1\) at the initial
+endpoint.
+
+For
+\[
+ g(n)=\1_{\Pmin(n)\geq L}z^{\Om_L(n,x)},
+\]
+the factor at \(p<L\) is exactly \(1-p^{-1}\). Hence
+\begin{equation}\label{eq:moment-rough}
+ \sum_{\substack{n\leq Y\\\Pmin(n)\geq L}}
+ z^{\Om_L(n,x)}
+ \ll_z
+ Y\rhoL
+ \left(\frac{\log X}{\log L}\right)^{z-1}.
+\end{equation}
+If \(L>Y\), the exceptional set is empty, so no separate range remains.
+
+Choose \(\theta>0\) so small that
+\[
+ \frac{A\log z}{1+\theta}>z-1,
+\]
+and put
+\[
+ r_j=(1+\theta)^j,\qquad x_j=L^{\exp(r_j)}.
+\]
+If \eqref{eq:regular} fails for some \(x\in[L,x_0]\), then
+\(\Om_L(n,x_0)>K\). If it fails for
+\(x\in[x_{j-1},x_j]\), \(j\geq1\), monotonicity gives
+\[
+ \Om_L(n,x_j)>
+ \frac{A}{1+\theta}r_j+K.
+\]
+Markov's inequality and \eqref{eq:moment-unrestricted} bound the latter
+exceptional set by
+\[
+ \ll_z Yz^{-K}
+ \exp\left\{
+ \left(z-1-\frac{A\log z}{1+\theta}\right)r_j
+ \right\}.
+\]
+The sum over \(j\) converges. For \(n\leq Y\), the left side of
+\eqref{eq:regular} is constant once \(x\geq Y\), while the threshold
+increases, so the grid may be stopped after crossing \(Y\). Replacing
+\eqref{eq:moment-unrestricted} by \eqref{eq:moment-rough} proves the rough
+version.
+\end{proof}
+
+\begin{remark}
+The restriction on \(z\) is substantive. For example, at \(L=3\) a bound
+uniform in \(K\) cannot have decay \(z^{-K}\) when \(z>3\), because multiples
+of \(3^{K+1}\) already violate the initial threshold. The range \(1<z<2\)
+is more than sufficient below.
+\end{remark}
+
+\section{A centered two-admissible source}\label{sec:source}
+
+Fix \(\delta\in(0,1)\), \(1<A<3/(2\log4)\), and \(K\geq0\). Let
+\[
+ S=S(N;L,A,K)
+ =
+ \{b\in[\delta N,N]:\Pmin(b)\geq L,\
+ b\text{ is \((L,A,K)\)-regular}\}.
+\]
+
+\begin{lemma}[source density]\label{lem:source-density}
+There is \(K_0=K_0(A,\delta)\) such that, if \(K\geq K_0\), then for every
+fixed \(L>2\) and all sufficiently large \(N\),
+\[
+ \abs{S}\geq\frac{1-\delta}{2}N\rhoL.
+\]
+The choice of \(K_0\) is independent of \(L\).
+\end{lemma}
+
+\begin{proof}
+For fixed \(L\), inclusion-exclusion gives
+\[
+ \#\{b\in[\delta N,N]:\Pmin(b)\geq L\}
+ =(1-\delta)N\rhoL+O_L(1).
+\]
+Choose \(z\in(1,2)\) close enough to \(1\) that
+\(A\log z>z-1\). By \cref{lem:centered-tail}, the excluded regularity tail
+is at most \(C_{A,z}N\rhoL z^{-K}\). Choose \(K_0\) so that
+\(C_{A,z}z^{-K_0}\leq(1-\delta)/4\), and then let \(N\) absorb the
+\(O_L(1)\) term.
+\end{proof}
+
+For \(b\in S\), call \(b\) bad if there is \(c\leq N\), \(c\ne b\), with
+\begin{equation}\label{eq:source-conflict}
+ b+c\mid2bc,\qquad \Om(c)\leq\Om(b).
+\end{equation}
+Let \(T(N;L,A,K)\) be the number of bad \(b\).
+
+\begin{proposition}[centered source estimate]\label{prop:source-estimate}
+Put \(M=A\log4\). Then
+\begin{equation}\label{eq:source-raw}
+ \frac{T(N;L,A,K)}{N\rhoL}
+ \ll_{A,\delta}
+ 4^K\left\{
+  (\log L)^{-3/2}
+  +(\log L)^{1/4-M}(\log N)^{M-3/2}
+ \right\}.
+\end{equation}
+The estimate holds for every fixed \(K,L\) and all sufficiently large
+\(N\). If \(K\geq K_0(A,\delta)\), division by
+\cref{lem:source-density} gives the same right side, up to a constant, as
+an upper bound for the proportion of \(S\) that is bad.
+\end{proposition}
+
+\begin{proof}
+Let \(b,c\) satisfy \eqref{eq:source-conflict}, put
+\[
+ u=\frac b{(b,c)},\qquad v=\frac c{(b,c)}.
+\]
+Then
+\begin{equation}\label{eq:sawin-coordinates}
+ (u,v)=1,\quad u(u+v)\mid2b,\quad
+ v\leq\delta^{-1}u,\quad
+ \Om(v)\leq\Om(u),\quad
+ (u,v)\ne(1,1).
+\end{equation}
+Indeed, \(u+v\mid2(b,c)uv\), while
+\((u+v,uv)=1\); multiplying by \(u\) gives the second condition. The
+remaining statements follow from \(c/b=v/u\), the range of \(b,c\), and
+complete additivity of \(\Om\). These are Sawin's coordinates
+\cite[Lemma~2]{Sawin2026}.
+
+Write
+\[
+ 2b=u(u+v)d,\qquad x=u+v.
+\]
+Because \(b\) is \(L\)-rough and \(L>2\), \(b\) is odd. No odd prime below
+\(L\) divides \(u(u+v)d\), and \(v_2(u(u+v)d)=1\). Every nonzero summand has
+\(x\geq L\): the case \(x=2\) is excluded, while \(2<x<L\) would introduce
+either an odd prime below \(L\) or a factor \(4\).
+
+With \(e=v_2(x)\in\{0,1\}\), the exact identity is
+\[
+ \Om_L(b,x)=
+ \Om(u)+\Om(x)-e+\Om_L(d,x).
+\]
+Thus regularity at \(x\) gives
+\[
+ \Om(u)+\Om(x)+\Om_L(d,x)
+ \leq A\log\frac{\log x}{\log L}+K+1.
+\]
+Exponentiating with base \(4\) bounds the indicator by
+\begin{equation}\label{eq:source-indicator}
+ 4^{K+1}
+ \left(\frac{\log x}{\log L}\right)^M
+ 4^{-\Om(u)}4^{-\Om(x)}4^{-\Om_L(d,x)}.
+\end{equation}
+
+We next sum \(d\). For \(D\geq1\), let
+\[
+ R(D;x,L)=
+ \sum_{\substack{d\leq D\\p\nmid d\ (2<p<L)}}
+ 4^{-\Om_L(d,x)}.
+\]
+Apply \cref{prop:one-variable}. The local factors are
+\[
+ 1-\frac1p\quad(2<p<L),
+\]
+\[
+ 1-\frac1p+\frac1{4p-1}
+ =1-\frac{3}{4p}+O(p^{-2})
+ \quad(L\leq p\leq x),
+\]
+and \(1+O(p^{-2})\) elsewhere; \(p=2\) contributes a fixed factor. Splitting
+according to \(D\geq x\) or \(D<x\) yields
+\begin{equation}\label{eq:source-residual}
+ R(D;x,L)\ll D\left\{
+  (\log x)^{-3/4}(\log L)^{-1/4}
+  +(\log(3D))^{-3/4}
+ \right\}.
+\end{equation}
+
+It remains to average the \(u,v,x\) weights. Define
+\[
+ g_{1,L}(n)=
+ 2^{-\Om(n)}
+ \1_{p\nmid n\ (2<p<L)}
+ \1_{4\nmid n},
+\]
+\[
+ g_2(n)=2^{-\Om(n)},
+\]
+and
+\[
+ g_{3,L}(n)=
+ 4^{-\Om(n)}
+ \1_{p\nmid n\ (2<p<L)}
+ \1_{4\nmid n}.
+\]
+Since \(\Om(v)\leq\Om(u)\),
+\[
+ 4^{-\Om(u)}4^{-\Om(u+v)}
+ \leq g_{1,L}(u)g_2(v)g_{3,L}(u+v).
+\]
+Encode \((u,v)=1\) by
+\[
+ F_L(n_1,n_2,n_3)=
+ \1_{(n_1,n_2)=1}
+ g_{1,L}(n_1)g_2(n_2)g_{3,L}(n_3).
+\]
+For coprime tuples \(\mathbf a,\mathbf b\),
+\[
+ F_L(\mathbf a\mathbf b)
+ =F_L(\mathbf a)F_L(\mathbf b)\leq F_L(\mathbf b),
+\]
+including the cases in which a support condition makes one side zero.
+Hence \(F_L\in\mathcal M_3(1,1,\epsilon)\) uniformly in \(L\).
+
+Apply \eqref{eq:dBT-shape} to \(U,V,U+V\). At every prime,
+\[
+ \rho_Q^+(p)=3p-2.
+\]
+At odd \(p\geq L\), \eqref{eq:axis-density} gives the exact local factor
+\[
+ 1+(1-p^{-1})^2
+ \left(\frac1{2p-1}+\frac1{2p-1}+\frac1{4p-1}\right)
+ =1+\frac{5}{4p}+O(p^{-2}).
+\]
+For \(2<p<L\), only the \(V\)-axis survives, giving
+\[
+ 1+\frac{(1-p^{-1})^2}{2p-1}
+ =1+\frac1{2p}+O(p^{-2}).
+\]
+At \(p=2\), the \(U\)- and \(U+V\)-valuations are at most one, while the
+\(V\)-valuation is arbitrary. Its exact factor is
+\[
+ 1+\frac1{16}+\frac1{32}+\frac1{12}
+ =\frac{113}{96}.
+\]
+All \(p^{-2}\) constants are absolute. Consequently the Euler factor in
+\eqref{eq:dBT-shape} is
+\[
+ \ll(\log X)^{5/4}(\log L)^{-3/4},
+\]
+while the root-sieve product is \(\ll(\log X)^{-3}\). Therefore, on
+\(u\in[X,2X]\),
+\begin{equation}\label{eq:source-three-form}
+ \sum_{\substack{X\leq u<2X\\0<v\leq\delta^{-1}u\\(u,v)=1}}
+ g_{1,L}(u)g_2(v)g_{3,L}(u+v)
+ \ll_\delta
+ X^2(\log X)^{-7/4}(\log L)^{-3/4}.
+\end{equation}
+Every nonzero block has \(X\gg_\delta L\).
+
+Use \eqref{eq:source-indicator} and
+\eqref{eq:source-residual} with
+\(D=2N/[u(u+v)]\), and sum \eqref{eq:source-three-form} dyadically. The first
+residual term, after division by \(N\rhoL\), contributes on one block
+\[
+ \ll_{A,\delta}
+ 4^K(\log L)^{-M}(\log X)^{M-5/2}.
+\]
+Since \(M<3/2\),
+\[
+ \sum_{X\ {\rm dyadic},\ X\gg L}
+ (\log X)^{M-5/2}
+ \ll(\log L)^{M-3/2},
+\]
+which gives \(4^K(\log L)^{-3/2}\).
+
+The second residual term contributes
+\[
+ \ll_{A,\delta}
+ 4^K(\log L)^{1/4-M}
+ (\log X)^{M-7/4}
+ \left(\log\frac{3N}{X^2}\right)^{-3/4}.
+\]
+Here \(X^2\leq u(u+v)\ll_\delta X^2\), while a nonempty term has
+\(u(u+v)\leq2N\). Thus both endpoint logarithms are bounded below by a
+positive constant; when large they differ by \(O_\delta(1)\), and when
+bounded their negative powers are \(O_\delta(1)\). This justifies the
+displayed replacement of \(u(u+v)\) by \(X^2\).
+Put \(T=\log N\), \(t=\log X\), and \(h=M-7/4\). For \(t\leq T/4\), the
+last logarithm is comparable to \(T\), so the dyadic sum is
+\[
+ \ll T^{-3/4}T^{h+1}=T^{M-3/2}.
+\]
+For \(t>T/4\), one has \(t\asymp T\), while the endpoint logarithm moves in
+constant increments and
+\[
+ \sum_{1\leq r\ll T}r^{-3/4}\ll T^{1/4}.
+\]
+This again gives \(T^{M-3/2}\), proving \eqref{eq:source-raw}.
+\end{proof}
+
+Delete every bad element of \(S\), and call the surviving set \(B\). If
+distinct \(b,d\in B\) satisfied \(b+d\mid2bd\), one of
+\(\Om(b),\Om(d)\) would be at least the other, so the endpoint with the
+larger value would have been deleted. Hence \(B\) is \(2\)-admissible.
+
+\begin{corollary}[Sawin's conclusion]\label{cor:second-conclusion}
+There is an absolute constant \(c>0\) such that
+\[
+ f_2(N)\geq cN
+\]
+for every sufficiently large \(N\).
+\end{corollary}
+
+\begin{proof}
+Fix \(\delta=1/2\) and \(1<A<3/(2\log4)\), and choose \(K\) from
+\cref{lem:source-density}. Because \(A\log4<3/2\), the first term in
+\eqref{eq:source-raw} is made smaller than one quarter of the source density
+by fixing \(L\) sufficiently large. With that \(L\) fixed, the second term
+tends to zero as \(N\) tends to infinity. The surviving set \(B\) is therefore
+\(2\)-admissible and has size at least \(N\rho_L/8\) for all sufficiently
+large \(N\). Taking \(c=\rho_L/8>0\) proves the claim.
+\end{proof}
+
+\section{The two-endpoint mixed estimate}\label{sec:mixed}
+
+We now estimate the conflicts between an odd host and twice the rough source.
+
+\begin{lemma}[mixed coordinates]\label{lem:mixed-coordinates}
+Let \(a,b\) be odd. Then
+\[
+ a+2b\mid ab
+\]
+if and only if there are unique \(t,u,w\in\N\) such that
+\[
+ a=tw(2u+w),\qquad b=tu(2u+w),\qquad (u,w)=1.
+\]
+\end{lemma}
+
+\begin{proof}
+Put \(g=(a,b)\), \(a=gw\), and \(b=gu\). Then \((u,w)=1\), and since \(w\)
+is odd,
+\[
+ (2u+w,uw)=1.
+\]
+Thus \(g(2u+w)\mid g^2uw\) if and only if \(2u+w\mid g\). Writing
+\(g=t(2u+w)\) gives the representation and its uniqueness. The converse is
+immediate.
+\end{proof}
+
+Fix positive \(A_b,A_o,K_b,K_o\), bases \(q_b,q_o>1\), and
+\(\delta\in(0,1)\). Let \(S\subseteq[\delta N,N]\) consist of \(L\)-rough
+integers satisfying the centered \((A_b,K_b)\) bound. Let \(O\) consist of
+odd \(a\leq2N\) satisfying the centered \((A_o,K_o)\) bound. Define
+\[
+ E_{\rm mix}(N)=
+ \#\{(a,b)\in O\times S:a+2b\mid ab\}.
+\]
+Put
+\[
+ \alpha=q_b^{-1},\qquad
+ \beta=q_o^{-1},\qquad
+ s=(q_bq_o)^{-1},
+\]
+\[
+ M=A_b\log q_b+A_o\log q_o,
+\]
+and
+\[
+ E=M+\alpha+\beta+2s-4.
+\]
+
+\begin{proposition}[two-endpoint estimate]\label{prop:mixed-estimate}
+If \(E<-1\), then
+\begin{equation}\label{eq:mixed-final}
+ E_{\rm mix}(N)
+ \ll q_b^{K_b}q_o^{K_o}
+ \left\{N(\log L)^{-2}+o_L(N)\right\}.
+\end{equation}
+The normalized \(o_L\)-function can be chosen independently of
+\(K_b,K_o\).
+\end{proposition}
+
+\begin{proof}
+Use \cref{lem:mixed-coordinates} and put \(x=2u+w\). Since \(b\) is
+\(L\)-rough and \(a,b\) are odd, all of \(t,u,w,x\) are odd and
+\(t,u,x\) are \(L\)-rough. The endpoint ranges imply
+\[
+ \frac wu=\frac ab\leq\frac2\delta,
+\qquad
+ \frac{\delta N}{ux}\leq t\leq\frac{N}{ux}.
+\]
+At the common scale \(x\),
+\[
+ \Om_L(b,x)=\Om_L(t,x)+\Om(u)+\Om(x),
+\]
+\[
+ \Om_L(a,x)=\Om_L(t,x)+\Om_{\geq L}(w)+\Om(x).
+\]
+Exponentiating both regularity bounds majorizes the joint indicator by
+\begin{equation}\label{eq:mixed-indicator}
+ q_b^{K_b}q_o^{K_o}
+ \left(\frac{\log x}{\log L}\right)^M
+ \alpha^{\Om(u)}
+ \beta^{\Om_{\geq L}(w)}
+ s^{\Om(x)}
+ s^{\Om_L(t,x)}.
+\end{equation}
+
+For \(Y=N/(ux)\), \cref{prop:one-variable} applied to
+\[
+ h_{L,x}(t)=\1_{\Pmin(t)\geq L}s^{\Om_L(t,x)}
+\]
+gives
+\begin{equation}\label{eq:mixed-residual}
+ \sum_{\substack{\delta Y\leq t\leq Y\\\Pmin(t)\geq L}}
+ s^{\Om_L(t,x)}
+ \ll_s
+ Y\left\{
+  (\log x)^{s-1}(\log L)^{-s}
+  +(\log(3Y))^{s-1}
+ \right\}.
+\end{equation}
+Indeed, the local factors are \(1-p^{-1}\) below \(L\),
+\[
+ 1-\frac{1-s}{p}+O_s(p^{-2})
+\]
+for \(L\leq p\leq\min(x,Y)\), and \(1+O(p^{-2})\) elsewhere. If \(Y<L\),
+the only possible \(L\)-rough integer up to \(Y\) is \(1\), which is covered
+by the second term.
+
+For the outer variables define
+\[
+ g_{1,L}(n)=\1_{\Pmin(n)\geq L}\alpha^{\Om(n)},
+\]
+\[
+ g_{2,L}(n)=\1_{2\nmid n}\beta^{\Om_{\geq L}(n)},
+\]
+\[
+ g_{3,L}(n)=\1_{\Pmin(n)\geq L}s^{\Om(n)},
+\]
+and
+\[
+ F_L(n_1,n_2,n_3)=
+ \1_{(n_1,n_2)=1}
+ g_{1,L}(n_1)g_{2,L}(n_2)g_{3,L}(n_3).
+\]
+As in the source estimate,
+\(F_L\in\mathcal M_3(1,1,\epsilon)\) uniformly in \(L\).
+
+Apply \eqref{eq:dBT-shape} to
+\[
+ Q_1(U,W)=U,\qquad Q_2(U,W)=W,\qquad Q_3(U,W)=2U+W.
+\]
+At odd primes the three root lines are distinct and have union size
+\[
+ \rho_Q^+(p)=3p-2.
+\]
+At \(p=2\), all three coordinate values are forced odd, so the exact local
+factor is \(1\). For \(2<p<L\), only the \(W\)-axis is permitted, and
+\eqref{eq:axis-density} gives
+\begin{equation}\label{eq:mixed-small-factor}
+ \mathcal E_p
+ =1+(1-p^{-1})^2\sum_{e\geq1}p^{-e}
+ =1+\frac1p-\frac1{p^2}.
+\end{equation}
+For \(p\geq L\), the complete factor is
+\begin{equation}\label{eq:mixed-large-factor}
+ \mathcal E_p
+ =1+(1-p^{-1})^2
+ \left(
+  \frac{\alpha}{p-\alpha}
+  +\frac{\beta}{p-\beta}
+  +\frac{s}{p-s}
+ \right).
+\end{equation}
+Thus
+\[
+ \mathcal E_p
+ =1+\frac{\alpha+\beta+s}{p}
+ +O_{\alpha,\beta,s}(p^{-2})
+\]
+above \(L\), with an error constant independent of \(L\). Mertens' estimate
+and the root-sieve product yield, on \(u\in[X,2X]\),
+\begin{equation}\label{eq:mixed-three-form}
+ \sum_{\substack{X\leq u<2X\\
+                  0<w\leq(2/\delta)u\\(u,w)=1}}
+ \alpha^{\Om(u)}
+ \1_{2\nmid w}\beta^{\Om_{\geq L}(w)}
+ s^{\Om(2u+w)}
+ \1_{\Pmin(u),\Pmin(2u+w)\geq L}
+ \ll
+ X^2(\log X)^{\alpha+\beta+s-3}
+ (\log L)^{1-\alpha-\beta-s}.
+\end{equation}
+Every relevant block has \(X\gg_\delta L\), and \(ux\asymp_\delta X^2\).
+
+Insert the first term of \eqref{eq:mixed-residual} into
+\eqref{eq:mixed-indicator} and use \eqref{eq:mixed-three-form}. One block
+contributes
+\[
+ \ll q_b^{K_b}q_o^{K_o}N
+ (\log X)^E(\log L)^{-E-3}.
+\]
+Since \(E<-1\), the dyadic sum from \(X\gg L\) is
+\[
+ \ll(\log L)^{E+1},
+\]
+leaving exactly
+\[
+ q_b^{K_b}q_o^{K_o}N(\log L)^{-2}.
+\]
+
+For the second residual term, put
+\[
+ H=M+\alpha+\beta+s-3.
+\]
+One block contributes
+\begin{equation}\label{eq:mixed-second-block}
+ \ll q_b^{K_b}q_o^{K_o}N
+ (\log L)^{1-\alpha-\beta-s-M}
+ (\log X)^H
+ \left(\log\frac{3N}{X^2}\right)^{s-1}.
+\end{equation}
+The replacement of \(ux\) by \(X^2\) inside the logarithm is legitimate
+despite the negative exponent. Namely, if \(Z=ux/X^2\), then
+\(1<Z\leq C_\delta\); writing \(N/X^2=ZV\), \(V\geq1\), shows
+\[
+ \log\frac{3N}{ux}
+ =\log3+\log V
+ \geq c_\delta\log\frac{3N}{X^2}.
+\]
+
+Now \(H+s=E+1<0\). Write \(U=\log N\), \(y=\log X\), and split at
+\(y=U/4\). Below the split, the endpoint logarithm is comparable to \(U\).
+If \(H>-1\), the normalized sum in \eqref{eq:mixed-second-block} is
+\[
+ O(U^{s-1}U^{H+1})=O(U^{E+1})=o(1).
+\]
+For \(H=-1\), only an extra \(\log U\) appears, and for \(H<-1\) the
+\(y\)-sum is bounded at its fixed \(L\)-dependent lower endpoint; both are
+again \(o(1)\). Above the split, \(y\asymp U\), and because
+\(s-1\in(-1,0)\), summing the endpoint variable gives \(O(U^s)\).
+The result is again \(O(U^{H+s})=O(U^{E+1})=o(1)\).
+
+The factor \(q_b^{K_b}q_o^{K_o}\) was outside every normalized sum, so the
+remaining \(o_L\)-function is independent of \(K_b,K_o\). This proves
+\eqref{eq:mixed-final}.
+\end{proof}
+
+\section{A feasible parameter window}\label{sec:parameters}
+
+We use the rational decimal parameters
+\begin{equation}\label{eq:parameters}
+\begin{aligned}
+ A_b&=1.000001,&q_b&=2.48933,\\
+ A_o&=1.16312,&q_o&=1.34288,\\
+ z_o&=1.34305,&c&=3.3912.
+\end{aligned}
+\end{equation}
+They satisfy
+\begin{equation}\label{eq:parameter-inequalities}
+\begin{aligned}
+ A_b\log4&<\frac32,\\
+ A_o\log z_o&>z_o-1,\\
+ c\log z_o&>1,\\
+ c\log q_o&<1,\\
+ A_b\log q_b+A_o\log q_o+q_b^{-1}+q_o^{-1}
+ +2(q_bq_o)^{-1}-4&<-1.
+\end{aligned}
+\end{equation}
+
+For reproducibility, the supplement bounds every logarithm by rational
+intervals obtained from
+\[
+ \log x=
+ 2\sum_{j\geq0}\frac{y^{2j+1}}{2j+1},
+\qquad y=\frac{x-1}{x+1},
+\]
+with an exact positive-tail bound. The certified margins are shown in
+\cref{tab:margins}.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{ll}
+\hline
+quantity & certified one-sided margin\\
+\hline
+\(A_b\log4-5/2<-1\)
+  & upper value \(<-1.1137042525\)\\
+\(A_o\log z_o-(z_o-1)>0\)
+  & \(>0.0000042730\)\\
+\(c\log z_o-1>0\)
+  & \(>0.0002111998\)\\
+\(1-c\log q_o>0\)
+  & \(>0.0002180771\)\\
+mixed exponent \(<-1\)
+  & upper value \(<-1.0004077237\)\\
+\hline
+\end{tabular}
+\caption{Strict parameter margins certified by rational intervals.}
+\label{tab:margins}
+\end{table}
+
+\section{Proof of the main theorem}\label{sec:assembly}
+
+\begin{proof}[Proof of \cref{thm:even-form}]
+Fix the parameters in \eqref{eq:parameters} and set \(\delta=1/2\). Choose
+\(z_b\in(1,2)\) sufficiently close to \(1\) that
+\[
+ A_b\log z_b>z_b-1.
+\]
+By \cref{lem:source-density}, choose a fixed \(K_b\) large enough to retain a
+uniform positive proportion of every \(L\)-rough source interval. This
+choice is made before \(L\).
+
+For each \(N\), let \(S_N\subseteq[N/2,N]\) consist of the \(L\)-rough
+integers satisfying the centered \((A_b,K_b)\) condition. For fixed \(L\)
+and all sufficiently large \(N\),
+\[
+ \abs{S_N}\geq\frac14N\rhoL.
+\]
+Delete every \(b\in S_N\) having a witness \(d\leq N\), \(d\ne b\), such
+that
+\[
+ b+d\mid2bd,\qquad \Om(d)\leq\Om(b),
+\]
+and call the surviving set \(B_N\). As observed after
+\cref{prop:source-estimate}, \(B_N\) is \(2\)-admissible.
+
+Because \(A_b\log4<3/2\), \cref{prop:source-estimate} permits \(L\) to be
+chosen, after \(K_b\), so large that the first loss is at most
+\(\abs{S_N}/4\). The second residual range will be controlled when \(N\) is
+chosen after all constraints on \(L\) have been imposed. For all sufficiently
+large such \(N\), we then have
+\begin{equation}\label{eq:B-density}
+ \abs{B_N}\geq\frac12\abs{S_N}
+ \geq\frac18N\rhoL.
+\end{equation}
+
+Now put
+\[
+ K_o=\left\lceil c\log\log L\right\rceil
+\]
+and let \(O_N\) be the odd \(a\leq2N\) satisfying the centered
+\((A_o,K_o)\) condition. By \cref{lem:centered-tail} and
+\eqref{eq:parameter-inequalities},
+\[
+ N-\abs{O_N}
+ \ll Nz_o^{-K_o}
+ \ll N(\log L)^{-c\log z_o}
+ =o_L(N\rhoL).
+\]
+Enlarging the still-to-be-fixed cutoff \(L\), we may arrange
+\begin{equation}\label{eq:odd-loss}
+ N-\abs{O_N}\leq\frac1{32}N\rhoL
+\end{equation}
+for all sufficiently large \(N\).
+
+Let \(E_N\) be the number of \((a,b)\in O_N\times S_N\) with
+\[
+ a+2b\mid ab.
+\]
+The last inequality in \eqref{eq:parameter-inequalities} and
+\cref{prop:mixed-estimate} give
+\[
+ E_N\ll q_b^{K_b}q_o^{K_o}
+ \left\{N(\log L)^{-2}+o_L(N)\right\}.
+\]
+Since \(K_b\) is fixed and
+\[
+ q_o^{K_o}\ll(\log L)^{c\log q_o},
+\qquad c\log q_o<1,
+\]
+the first term is \(o_L(N\rhoL)\). Enlarge \(L\) once more to control it.
+After \(L\), and hence \(K_o\), is fixed, take \(N\) large enough
+simultaneously for the rough source asymptotic, the second source residual
+range, the odd-host bound, and the normalized mixed \(o_L\)-term. Thus
+\begin{equation}\label{eq:edge-loss}
+ E_N\leq\frac1{32}N\rhoL.
+\end{equation}
+
+The choices have occurred in the legal order
+\[
+ \text{fixed real parameters}
+ \longrightarrow K_b
+ \longrightarrow L
+ \longrightarrow K_o
+ \longrightarrow N.
+\]
+
+Let
+\[
+ \Gamma_N=
+ \{a\in O_N:\text{some }b\in B_N
+ \text{ satisfies }a+2b\mid ab\}.
+\]
+Since \(B_N\subseteq S_N\), \(\abs{\Gamma_N}\leq E_N\). Define
+\[
+ A_N=(O_N\setminus\Gamma_N)\cup\{2b:b\in B_N\}.
+\]
+Two odd members cannot conflict because their sum is even and their product
+is odd. Two even members \(2b,2d\) conflict exactly when
+\(b+d\mid2bd\), excluded by the \(2\)-admissibility of \(B_N\). Every mixed
+conflict was deleted in the definition of \(\Gamma_N\). Hence \(A_N\) is
+\(1\)-admissible.
+
+Finally, \eqref{eq:B-density}, \eqref{eq:odd-loss}, and
+\eqref{eq:edge-loss} give
+\[
+\begin{aligned}
+ \abs{A_N}
+ &=\abs{O_N}-\abs{\Gamma_N}+\abs{B_N}\\
+ &\geq
+ N-\frac1{32}N\rhoL-\frac1{32}N\rhoL
+ +\frac18N\rhoL\\
+ &=N+\frac1{16}N\rhoL.
+\end{aligned}
+\]
+The selected \(L\) is now an absolute constant, so
+\(\eta=\rhoL/16>0\) proves \cref{thm:even-form}.
+\end{proof}
+
+\begin{proof}[Proof of \cref{thm:main}]
+As noted after the theorem statement, apply \cref{thm:even-form} with
+\(N=\floor{X/2}\). For all sufficiently large \(X\),
+\[
+ f_1(X)\geq (1+\eta)\floor{X/2}
+ \geq\left(\frac12+\frac{\eta}{4}\right)X.
+\]
+\end{proof}
+
+\section{Formal verification and reproducibility}
+
+The numerical supplement checks the exact mixed coordinates in finite boxes,
+the root count \(3p-2\), the complete small- and large-prime mixed Euler
+factors, the rational interval bounds in \cref{tab:margins}, and the symbolic
+cancellation leaving \((\log L)^{-2}\). These checks are not evidence for the
+analytic mean-value theorems; those enter only through the cited results in
+\cref{sec:inputs}, whose hypotheses and cutoff uniformity are verified in the
+proofs above.
+
+The accompanying Lean development formalizes the complete argument, including
+the analytic estimates. Rather than postulating the two cited mean-value
+theorems, it proves the special cases needed here: centered maximal
+prime-factor tails, explicit Mertens-type product bounds, the local
+three-linear-form weights, finite upper-sieve estimates with scheduled
+truncation errors, and the source and mixed dyadic summations. The transition
+and small-residual ranges are kept literal until their separate terminal
+estimates are proved.
+
+The principal public declarations are
+\begin{quote}
+\path{Erdos327.Analytic.erdos327Conclusion_unconditional},\\
+\path{Erdos327.Analytic.erdos327SecondConclusion_unconditional},\\
+\path{Erdos327.Analytic.erdos327FullConclusion_unconditional}.
+\end{quote}
+Their target propositions are the literal asymptotic statements in
+\path{Erdos327/Defs.lean}. The source conclusion is assembled in
+\path{SourceFinalSummation.lean}; the mixed bulk, error, terminal, and
+boundary budgets are combined in \path{MixedFinalSummation.lean}; and the
+common cutoff and final four-estimate construction are assembled in
+\path{Unconditional.lean}.
+
+With Lean~\(4.33.0\)-rc1 and the pinned Mathlib revision, the root build checks
+all declarations. A project-wide scan contains no \path{sorry},
+\path{admit}, project-local axiom, opaque theorem interface, or unsafe
+declaration. Lean's \texttt{\#print axioms} reports only
+\path{propext}, \path{Classical.choice}, and \path{Quot.sound} for each of
+the three declarations above.
+
+A literature sweep completed on 29 July 2026 located no prior paper or public
+proof claim resolving the first question. This is a dated search report, not
+a categorical priority claim. The centered source estimate is a refinement
+of Sawin's method, and the multivariable upper bound is due to de la
+Bret\`eche and Tenenbaum. A separate search located no prior public Lean
+formalization of Problem~327 or Sawin's result; existing public developments
+provide only more general prerequisites or incomplete nearby statements.
+
+\section*{Computational and AI-use disclosure}
+
+AI systems were used for data analysis, reference search, adversarial proof
+audits, independent reconstruction of intermediate estimates, formalization
+assistance, and proofreading. The two-endpoint strategy, parameter choice,
+mathematical argument, and manuscript are the author's work. The author has
+checked the displayed calculations against the cited primary sources and
+accepts responsibility for all claims and errors.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
