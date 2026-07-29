@@ -41,9 +41,9 @@ unsafe declarations.
 | Problem statements and finite construction | `Defs`, `Basic`, `Assembly`, `AnalyticAssembly`, `CanonicalReduction` |
 | Conflict coordinates | `Coordinates`, `SourceCoordinates`, `MixedMainReduction` |
 | Centered anatomy tails | `CenteredTailBounds`, `TailInstantiation`, `Regularity` |
-| Mertens and rough density | `MertensElementary`, `WeightedMangoldtUniform`, `RoughCount` |
+| Mertens and rough density | `Mertens`, `WeightedMangoldtUniform`, `RoughCount` |
 | Specialized local three-form weights | `WeightedLinearSieveLocal`, `ThreeFormWeightBridge` |
-| Finite scheduled upper sieve | `WeightedLinearSieve`, `SieveSchedule`, `SieveScheduleErrors`, `ScheduledProductBounds` |
+| Finite scheduled upper sieve | `WeightedLinearSieveFinite`, `SieveSchedule`, `SieveScheduleErrors`, `ScheduledProductBounds` |
 | Source summation | `SourceScheduledSummation`, `SourceMainSummation`, `SourceTerminalSummation`, `SourceBoundarySummation`, `SourceErrorCoupling`, `SourceFinalSummation` |
 | Mixed summation | `MixedScheduledSummation`, `MixedMainSummation`, `MixedTerminalSummation`, `MixedBoundarySummation`, `MixedBudgetSummation`, `MixedFinalSummation` |
 | Common cutoff and final theorem | `Unconditional` |
