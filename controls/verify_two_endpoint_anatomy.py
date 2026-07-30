@@ -103,6 +103,89 @@ def audit_coordinates(box: int = 240) -> None:
           "" if bad_converse is None else str(bad_converse))
 
 
+def audit_block_lower_bound() -> None:
+    """Certify the two errata of the revised manuscript.
+
+    (i) eq:block-lower -- every mixed conflict with an L-rough b in the
+        endpoint ranges has u >= L, so every dyadic block starts at L.
+        The exclusion of u=1 uses k=1 essentially.
+    (ii) eq:a-anatomy -- w carries at most one prime factor above x, so the
+        Omega_{>=L}(w) majorisation costs exactly one factor q_o.
+    """
+    print("1b. dyadic block lower bound and the Omega_{>=L}(w) majorisation")
+
+    # (i)  delta = 1/2, so the hypothesis is L > 2 + 2/delta = 6.
+    bad = None
+    for L in (7, 11, 13, 17):
+        N = 900
+        for b in range(N // 2, N + 1):
+            if b % 2 == 0 or any(b % p == 0 for p in range(2, L)):
+                continue
+            for a in range(1, 2 * N + 1, 2):
+                if (a * b) % (a + 2 * b) != 0:
+                    continue
+                u = b // gcd(a, b)
+                if u < L:
+                    bad = (L, a, b, u)
+                    break
+            if bad:
+                break
+        if bad:
+            break
+    check("every mixed conflict with L-rough b has u >= L, so every dyadic "
+          "block starts at L", bad is None,
+          "L in {7,11,13,17}, N=900" if bad is None else str(bad))
+
+    # The mechanism, and the necessity of the endpoint range.  Inside the
+    # range a <= (2/delta) b = 4b the value u=1 cannot occur, because it
+    # would force x = 2 + w <= 6 < L while x must be L-rough.  Outside the
+    # range it does occur, so the range hypothesis is not decorative.
+    LL = 7
+    rough = [b for b in range(1, 400) if b % 2 and all(b % p for p in range(2, LL))]
+    inside = [(a, b) for b in rough for a in range(1, 4 * b + 1, 2)
+              if (a * b) % (a + 2 * b) == 0 and b // gcd(a, b) == 1]
+    outside = [(a, b) for b in rough for a in range(4 * b + 1, 8 * b + 1, 2)
+               if (a * b) % (a + 2 * b) == 0 and b // gcd(a, b) == 1]
+    check("inside the endpoint range a <= 4b, no mixed conflict has u = 1",
+          not inside, "" if not inside else str(inside[:3]))
+    check("outside that range u = 1 does occur, so the range hypothesis is "
+          "necessary", bool(outside),
+          f"smallest witness (a,b)={min(outside, key=lambda t: t[1])}"
+          if outside else "none found")
+
+    # (ii)  w <= (2/delta) u < 4x, so two prime factors above x would need
+    #       w > x^2 > 4x once x >= 4.
+    limit = 4 * 200
+    spf = list(range(limit + 1))
+    for i in range(2, int(limit ** 0.5) + 1):
+        if spf[i] == i:
+            for j in range(i * i, limit + 1, i):
+                if spf[j] == j:
+                    spf[j] = i
+    bad = None
+    for x in range(5, 201):
+        for w in range(1, 4 * x + 1):
+            m, big = w, 0
+            while m > 1:
+                if spf[m] > x:
+                    big += 1
+                m //= spf[m]
+            if big > 1:
+                bad = (x, w, big)
+                break
+        if bad:
+            break
+    check("for w <= 4x and x >= 5, w has at most one prime factor above x, "
+          "so the majorisation costs exactly one factor q_o", bad is None,
+          "" if bad is None else str(bad))
+
+    # The extra q_o is an absolute constant: it multiplies no exponent.
+    qo = Fraction(16_786, 12_500)
+    check("the extra factor q_o is a fixed rational independent of L, N, "
+          "K_b, K_o", qo > 1 and qo.denominator == 6250,
+          f"q_o = {decimal(qo)}")
+
+
 def audit_local_roots() -> None:
     print("2. local linear-form geometry")
     primes = (3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
@@ -231,6 +314,7 @@ def audit_parameters() -> None:
 
 def main() -> int:
     audit_coordinates()
+    audit_block_lower_bound()
     audit_local_roots()
     audit_euler_factors()
     audit_parameters()

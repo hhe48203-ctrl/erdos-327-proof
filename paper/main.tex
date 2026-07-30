@@ -500,7 +500,10 @@ while the root-sieve product is \(\ll(\log X)^{-3}\). Therefore, on
  \ll_\delta
  X^2(\log X)^{-7/4}(\log L)^{-3/4}.
 \end{equation}
-Every nonzero block has \(X\gg_\delta L\).
+Every nonzero block has \(X\geq L\). Indeed \(u\mid b\) and \(b\) is
+\(L\)-rough, so \(u\) is \(L\)-rough; and \(u=1\) would force
+\(\Om(v)\leq\Om(u)=0\), hence \(v=1\) and \(b=c\), which
+\eqref{eq:sawin-coordinates} excludes. So \(u\neq1\) and \(u\geq L\).
 
 Use \eqref{eq:source-indicator} and
 \eqref{eq:source-residual} with
@@ -626,7 +629,7 @@ The normalized \(o_L\)-function can be chosen independently of
 \end{proposition}
 
 \begin{proof}
-Use \cref{lem:mixed-coordinates} and put \(x=2u+w\). Since \(b\) is
+Use \cref{lem:mixed-coordinates} and put \(x=2u+w\). Since \(b=tux\) is
 \(L\)-rough and \(a,b\) are odd, all of \(t,u,w,x\) are odd and
 \(t,u,x\) are \(L\)-rough. The endpoint ranges imply
 \[
@@ -634,22 +637,48 @@ Use \cref{lem:mixed-coordinates} and put \(x=2u+w\). Since \(b\) is
 \qquad
  \frac{\delta N}{ux}\leq t\leq\frac{N}{ux}.
 \]
+We first record the lower bound on \(u\) that starts the dyadic sum. Assume
+\(L>2+2\delta^{-1}\), as we may, since \(L\) is at our disposal. Then
+\begin{equation}\label{eq:block-lower}
+ u\geq L,\qquad\text{and hence}\qquad x>2u\geq2L .
+\end{equation}
+Indeed \(x\mid b\) and \(b\) is \(L\)-rough, so \(x\) is \(L\)-rough; as
+\(x=2u+w\geq3\) we get \(x\geq L\). If \(u\) were \(1\), the range above would
+give \(w=a/b\leq2\delta^{-1}\) and therefore
+\(x=2+w\leq2+2\delta^{-1}<L\), a contradiction. So \(u\neq1\), and \(u\) is
+\(L\)-rough, whence \(u\geq L\).
+
+Equivalently, in the language of the multiplier: at \(k=1\) the greatest
+common divisor \(g=tx\) already contains all of \(x\), so \(u=1\) would force
+\(x\) to divide \(k=1\). It is this feature that fails for a general
+multiplier, where only \(x/(x,k)\) need divide \(g\).
 At the common scale \(x\),
 \[
  \Om_L(b,x)=\Om_L(t,x)+\Om(u)+\Om(x),
 \]
-\[
- \Om_L(a,x)=\Om_L(t,x)+\Om_{\geq L}(w)+\Om(x).
-\]
-Exponentiating both regularity bounds majorizes the joint indicator by
+\begin{equation}\label{eq:a-anatomy}
+ \Om_L(a,x)=\Om_L(t,x)+\Om_L(w,x)+\Om(x)
+ \geq\Om_L(t,x)+\Om_{\geq L}(w)+\Om(x)-1 .
+\end{equation}
+The inequality in \eqref{eq:a-anatomy} is where a prime factor of \(w\)
+exceeding \(x\) is discarded, and one such factor is all that can occur: by
+\eqref{eq:block-lower} we have \(x\geq L>2\delta^{-1}\), while
+\(w\leq2\delta^{-1}u<2\delta^{-1}x\), so two prime factors above \(x\) would
+force \(w>x^2>2\delta^{-1}x\). Exponentiating both regularity bounds
+therefore majorizes the joint indicator by
 \begin{equation}\label{eq:mixed-indicator}
- q_b^{K_b}q_o^{K_o}
+ q_o\,q_b^{K_b}q_o^{K_o}
  \left(\frac{\log x}{\log L}\right)^M
  \alpha^{\Om(u)}
  \beta^{\Om_{\geq L}(w)}
  s^{\Om(x)}
  s^{\Om_L(t,x)}.
 \end{equation}
+The single extra factor \(q_o\) is an absolute constant: it does not depend on
+\(L\), \(N\), \(K_b\) or \(K_o\), it is absorbed by the implied constant of
+\eqref{eq:mixed-final}, and it changes no exponent. In particular the
+parameter window of \cref{sec:parameters} and the certified margins of
+\cref{tab:margins} are untouched.
 
 For \(Y=N/(ux)\), \cref{prop:one-variable} applied to
 \[
@@ -737,7 +766,8 @@ and the root-sieve product yield, on \(u\in[X,2X]\),
  X^2(\log X)^{\alpha+\beta+s-3}
  (\log L)^{1-\alpha-\beta-s}.
 \end{equation}
-Every relevant block has \(X\gg_\delta L\), and \(ux\asymp_\delta X^2\).
+Every relevant block has \(X\geq L\) by \eqref{eq:block-lower}, and
+\(ux\asymp_\delta X^2\).
 
 Insert the first term of \eqref{eq:mixed-residual} into
 \eqref{eq:mixed-indicator} and use \eqref{eq:mixed-three-form}. One block
@@ -1020,6 +1050,36 @@ of Sawin's method, and the multivariable upper bound is due to de la
 Bret\`eche and Tenenbaum. A separate search located no prior public Lean
 formalization of Problem~327 or Sawin's result; existing public developments
 provide only more general prerequisites or incomplete nearby statements.
+
+\section*{Errata relative to version 1}
+
+Two steps in the first released version of this manuscript were stated
+without adequate justification. Both are corrected above, and neither changes
+any theorem, exponent, or certified margin.
+
+\begin{enumerate}
+\item The assertion that every relevant dyadic block satisfies
+      \(X\gg_\delta L\) was used in \cref{prop:source-estimate} and
+      \cref{prop:mixed-estimate} without proof. It is now proved: for the
+      source, after \eqref{eq:source-three-form}; for the two-endpoint
+      estimate, as \eqref{eq:block-lower}. Both proofs run through the
+      exclusion of \(u=1\), and in the two-endpoint case that exclusion uses
+      \(k=1\) in an essential way, through the fact that \(x\) itself, and not
+      merely \(x/(x,k)\), must divide the greatest common divisor. The
+      corresponding claim is false for a general odd multiplier, and the
+      companion manuscript on the multipliers \(k\geq2\) has to change the
+      dilation to repair it.
+\item The identity \(\Om_L(a,x)=\Om_L(t,x)+\Om_{\geq L}(w)+\Om(x)\) is only an
+      inequality \(\geq\cdots-1\), since \(w\) may carry one prime factor
+      exceeding \(x\). This is now \eqref{eq:a-anatomy}. The cost is the
+      single absolute factor \(q_o\) in \eqref{eq:mixed-indicator}, absorbed
+      by the implied constant; no exponent and no entry of
+      \cref{tab:margins} changes.
+\end{enumerate}
+
+The Lean development is unaffected: it proves the analytic estimates in the
+special cases it needs rather than transcribing these two lines, and it was
+not rebuilt for this revision.
 
 \section*{Computational and AI-use disclosure}
 
