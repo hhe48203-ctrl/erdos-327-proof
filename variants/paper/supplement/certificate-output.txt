@@ -1,0 +1,69 @@
+Recorded 2026-07-29.
+
+Command: python3 paper/supplement/verify_certificate.py
+
+1. periodic benchmark (the correct density to beat, for each k)
+  [ok] every class mod M<=40 has an explicit conflict when k is even
+  [ok] every class mod M<=40 with M odd or r even has an explicit conflict when k is odd
+  [ok] every produced witness is a genuine conflicting pair in its class -- 14300 witnesses verified
+  [ok] for odd k the odd classes modulo an even modulus have no conflict below 4000
+  [ok] the odd numbers are k-admissible precisely for odd k (k<=24)
+  [ok] for odd k the best surviving periodic density is exactly 1/2 -- [(1, Fraction(1, 2)), (3, Fraction(1, 2)), (5, Fraction(1, 2)), (7, Fraction(1, 2)), (9, Fraction(1, 2)), (15, Fraction(1, 2))]
+  [ok] for even k no residue class survives at all: benchmark density 0 -- [(2, Fraction(0, 1)), (4, Fraction(0, 1)), (6, Fraction(0, 1))]
+2. conflict criterion  a+b | kab  <=>  x/(x,k) | g
+  [ok] criterion holds for all 1<=k<=12 and all a<b<220 -- 286452 pairs
+3. two-adic restriction on odd conflicts
+  [ok] odd a,b with a+b | kab always have v_2(a+b) <= v_2(k)
+  [ok] k=2: no conflict between 1 mod 4 and 3 mod 4 below 2600
+  [ok] k=2: both classes 1 mod 4 and 3 mod 4 do contain conflicts -- [(5, 45), (3, 15)]
+4. generalised source coordinates for the modulus m problem
+  [ok] oriented source conflicts have the stated coordinates, u>=L, x>L, and L-smooth part exactly m -- 560 oriented conflicts
+5. two-endpoint mixed coordinates for odd k
+  [ok] NEGATIVE CONTROL: for 3|k the pair {n,2n} always conflicts, so the dilation 2 is fatal -- checked odd n < 300
+  [ok] NEGATIVE CONTROL: for 5|k the pair {2n,3n} always conflicts -- checked odd n < 300 coprime to 15
+  [ok] REPAIR: with lambda = least power of two >= k, every mixed conflict has u >= L, so every dyadic block has X >= L -- odd k <= 21
+  [ok] every mixed conflict with L-rough odd b has the stated coordinates -- 216 conflicts
+  [ok] every coordinate tuple gives back a mixed conflict
+  [ok] for w <= 64x and x >= 64, w has at most one prime factor above x (so the Omega_{>=L}(w) majorisation costs one factor q_o)
+6. local linear-form geometry
+  [ok] mixed triple (U, W, 2U+W) has 3p-2 root residues at every tested odd prime -- primes 3..41
+  [ok] source triple (U, V, U+V) has 3p-2 root residues at every tested odd prime -- primes 3..41
+  [ok] at p=2 the mixed triple forces all three values odd -- [(1, 1)]
+  [ok] source triple has 3p-2 = 4 root residues at p=2 as well -- got 4
+  [ok] mixed triple has only 3 root residues at p=2, so 3p-2 is claimed for odd p only there -- got 3
+7. complete local Euler factors for both triples
+  [ok] mixed small-prime factor equals 1 + 1/p - 1/p^2
+  [ok] mixed large-prime factor is 1 + (alpha+beta+s)/p + O(p^-2) -- max p^2|remainder| = 2.07457090996567289543503592211910511405598106379742366138398
+  [ok] source small-prime factor is 1 + 1/(2p) + O(p^-2) (only the V-axis)
+  [ok] source large-prime factor is 1 + (5/4)/p + O(p^-2) -- max p^2|remainder| = 1.92473010795681727309076369452219112355057976809276289484206
+  [ok] at primes dividing the multiplier the modified mixed factor exceeds the generic one by a bounded ratio -- max ratio = 1.04027594818203802395092733913351196828230074656648372295593 < 3/2
+8. certified parameter window (identical for every odd k)
+  [ok] source dyadic exponent M-5/2 is rigorously below -1 -- upper = -1.11370425258574826127491692261940394749586358027922077124813
+  [ok] odd-host Chernoff margin A_o log z_o - (z_o - 1) is positive -- lower = 0.00000427305720345996836848515240867757202188848421091031587043014
+  [ok] odd exceptional exponent c log z_o exceeds 1 -- lower = 0.000211199868963110809487591004237144389435852042485761626641965
+  [ok] cross penalty exponent c log q_o is below 1 -- lower = 0.000218077141807699010501986580503773677223466852749837312705806
+  [ok] two-endpoint dyadic exponent E is rigorously below -1 -- upper = -1.00040772374270634877920410238120785321837047203858937372604
+  [ok] exceptional moment base exceeds the cross base -- z_o - q_o = 0.00017
+  [ok] source block exponent in log X is exactly M - 5/2 -- {'M': Fraction(1, 1), 'one': Fraction(-5, 2)}
+  [ok] source dyadic sum cancels M and leaves exactly (log L)^-3/2 -- {'one': Fraction(-3, 2)}
+  [ok] mixed block exponent in log X is exactly E = M+alpha+beta+2s-4 -- {'M': Fraction(1, 1), 'alpha': Fraction(1, 1), 'beta': Fraction(1, 1), 's': Fraction(2, 1), 'one': Fraction(-4, 1)}
+  [ok] mixed dyadic sum cancels every symbol and leaves exactly (log L)^-2 -- {'one': Fraction(-2, 1)}
+  [ok] source loss (log L)^-3/2 beats rho_L by (log L)^-1/2 -- net exponent = -1/2
+  [ok] mixed loss (log L)^(-2 + c log q_o) beats rho_L -- net exponent < -0.000218077141807699010501986580503773677223466852749837312705806
+  [ok] all logarithm intervals have width below 10^-80 -- maximum width = 4.45439512219175870275910544301762785698931916620434525664076E-114
+  [ok] for every odd k<=25 the k-dependent constant is finite and the net cutoff exponent is negative, so a finite L_k exists -- net exponent < -0.000218077; C_k samples [(1, '3.342871'), (3, '11.17478'), (5, '11.17478'), (15, '37.35588'), (25, '37.35588')]
+9. largest-prime-factor fibration
+  [ok] elements with different prime factors above sqrt(max(k,2)N) never conflict
+  [ok] inside one fibre the conflict relation is exactly the original one
+  [ok] the fibration contraction constant log 2 is strictly below 1 -- log 2 < 0.693147180559945309417232121458176568075500134360255254120680
+10. end-to-end two-layer assembly (combinatorics only)
+     NOTE: this checks that the assembled set really is k-admissible.
+     It cannot exhibit the density gain: that is asymptotic and needs
+     L and N chosen in the legal order, far beyond any box.
+  [ok] k=1, lambda=2, L=7, N=400: the assembled set is k-admissible -- |B|=47, |Gamma|=6, |A|=441, odds=400, gain=+41
+  [ok] k=3, lambda=4, L=13, N=400: the assembled set is k-admissible -- |B|=35, |Gamma|=0, |A|=835, odds=800, gain=+35
+  [ok] k=5, lambda=8, L=41, N=300: the assembled set is k-admissible -- |B|=27, |Gamma|=0, |A|=1227, odds=1200, gain=+27
+  [ok] k=7, lambda=8, L=57, N=300: the assembled set is k-admissible -- |B|=27, |Gamma|=0, |A|=1227, odds=1200, gain=+27
+  [ok] k=9, lambda=16, L=145, N=260: the assembled set is k-admissible -- |B|=21, |Gamma|=0, |A|=2101, odds=2080, gain=+21
+
+all checks passed

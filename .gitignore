@@ -12,3 +12,10 @@ paper/main.out
 paper/main.pdf
 
 lean/.lake/
+
+variants/paper/main.aux
+variants/paper/main.bbl
+variants/paper/main.blg
+variants/paper/main.log
+variants/paper/main.out
+variants/paper/main.pdf

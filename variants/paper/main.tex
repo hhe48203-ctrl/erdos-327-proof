@@ -1,0 +1,1148 @@
+\documentclass[11pt]{article}
+\input{macros}
+
+\title{Admissibility variants of Erd\H{o}s Problem 327:\\
+the multipliers \(k\geq2\)}
+\author{Donald Della Pietra}
+\date{}
+\hypersetup{
+  pdftitle={Admissibility variants of Erdos Problem 327: the multipliers k >= 2},
+  pdfauthor={Donald Della Pietra},
+  pdfsubject={Unit fractions and Erdos Problem 327},
+  pdfkeywords={unit fractions, multiplicative functions, anatomy of integers, Erdos Problem 327}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+For \(k\geq1\) call a set \(A\) \(k\)-admissible if \(a+b\nmid kab\) for all
+distinct \(a,b\in A\), and let \(f_k(N)\) be the largest size of a
+\(k\)-admissible subset of \(\{1,\ldots,N\}\). The case \(k=1\) is the first
+question of Erd\H{o}s Problem 327 and \(k=2\) is the second; Sawin proved
+\(f_2(N)\gg N\), and the companion manuscript \cite{DellaPietra2026} proved
+\(f_1(N)\geq(1/2+\varepsilon)N\).
+
+We first settle what the correct benchmark is for each \(k\). A periodic set
+is \(k\)-admissible if and only if every one of its residue classes consists
+of odd numbers and \(k\) is odd. Hence for odd \(k\) the odd numbers are
+\(k\)-admissible and are the densest periodic \(k\)-admissible set, while for
+even \(k\) \emph{no} nonempty periodic set is \(k\)-admissible. The benchmark
+is therefore \(1/2\) for odd \(k\) and \(0\) for even \(k\); this is the
+analogue, for the present problem, of a parity trap, and it changes which
+target is meaningful.
+
+We then show that the machinery of \cite{DellaPietra2026} transfers with
+\(k\)-dependent constants and an unchanged parameter window, provided its
+dilation \(2\) is replaced by \(\lambda(k)\), the least power of two that is at
+least \(k\). That replacement is necessary, not cosmetic: with the dilation
+\(2\) the construction fails outright whenever \(3\mid k\) or \(5\mid k\),
+because \(\{n,2n\}\) and \(\{2n,3n\}\) are then never \(k\)-admissible. We
+obtain:
+\begin{itemize}
+\item for every odd \(k\) an absolute \(\varepsilon_k>0\) with
+      \(f_k(N)\geq(\tfrac12+\varepsilon_k)N\) for large \(N\)
+      (Theorem~\ref{thm:odd-main});
+\item for every \(k\geq1\) an absolute \(c_k>0\) with \(f_k(N)\geq c_kN\)
+      (Theorem~\ref{thm:all-k}). This is new for even \(k\geq4\); at \(k=2\)
+      it recovers Sawin's theorem, and for odd \(k\) it is superseded by the
+      previous item and, indeed, already by the odd numbers.
+\end{itemize}
+We do \emph{not} obtain \(f_2(N)\geq(1/2+\varepsilon)N\), the question raised
+in the Problem 327 discussion thread, and Section~\ref{sec:even} isolates the exact
+obstruction: for even \(k\) the method has no dense automatically admissible
+layer to start from, and the dilation identity shows that no rescaling
+produces one. All numerical claims are certified by exact rational arithmetic
+in an accompanying standalone verifier. A Lean formalization is planned and
+is not part of this manuscript.
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+
+For \(k\geq1\), call a set \(A\) of positive integers \(k\)-admissible if
+\begin{equation}\label{eq:kadm}
+ a+b\nmid kab\qquad(a,b\in A,\ a\ne b),
+\end{equation}
+and put
+\[
+ f_k(N)=\max\{\abs{A}:A\subseteq\{1,\ldots,N\},\ A\text{ is }k\text{-admissible}\}.
+\]
+Erd\H{o}s and Graham \cite[p.~37]{ErdosGraham1980} asked whether a
+\(1\)-admissible set can be substantially more than the odd numbers, and
+whether every \(2\)-admissible set has size \(o(N)\); these are the two
+questions of Problem 327 \cite{ErdosProblem327}. In unit-fraction language
+\(a+b\mid ab\) says that \(1/a+1/b\) is a unit fraction, and \(a+b\mid2ab\)
+says that the average of \(1/a\) and \(1/b\) is a unit fraction.
+
+The state of the art we start from is the following.
+\begin{itemize}
+\item Sawin \cite{Sawin2026} proved \(f_2(N)\gg N\), answering the second
+      question negatively. The constant is not made explicit.
+\item The companion manuscript \cite{DellaPietra2026} proved
+      \(f_1(N)\geq(1/2+\varepsilon)N\) for an absolute \(\varepsilon>0\).
+\item In the discussion thread \cite{Erdos327Thread}, leon2k2k2k obtained the
+      upper bounds \(f_1(N)\leq(0.7769+o(1))N\),
+      \(f_2(N)\leq(0.7630+o(1))N\) and \(f_3(N)\leq(0.6089+o(1))N\)
+      \cite{Leon2026}, and asked whether
+      \(f_2(N)\geq(1/2+o(1))N\).
+\end{itemize}
+For odd \(k\) the odd numbers give the trivial bound
+\(f_k(N)\geq N/2+O(1)\), as we recall in Section~\ref{sec:benchmark}. Beyond
+that, no lower bound for \(f_k\) with \(k\geq3\) --- in particular none at all
+for even \(k\geq4\), where the trivial bound is unavailable --- appears in the
+literature or in the thread; a dated search is reported in
+Section~\ref{sec:repro}.
+
+\subsection{The correct benchmark}
+
+Before asking whether one can beat density \(1/2\) it is necessary to know
+whether \(1/2\) is available at all. It is not, for even \(k\). The following
+is proved in Section~\ref{sec:benchmark}; it is sharp, and it is what makes the
+odd and even cases genuinely different problems.
+
+\begin{theorem}[periodic benchmark]\label{thm:benchmark}
+Let \(k,M\geq1\) and \(0\leq r<M\), and let
+\(C_{r,M}=\{n\geq1:n\equiv r\bmod M\}\).
+\begin{enumerate}
+\item If \(k\) is odd, \(M\) is even and \(r\) is odd, then \(C_{r,M}\) is
+      \(k\)-admissible.
+\item In every other case \(C_{r,M}\) contains distinct \(a,b\) with
+      \(a+b\mid kab\); an explicit such pair is displayed in
+      \eqref{eq:witness}.
+\end{enumerate}
+Consequently, a union of residue classes to a common modulus is
+\(k\)-admissible if and only if each of its classes is of type (1). For odd
+\(k\) every periodic \(k\)-admissible set consists of odd numbers and so has
+density at most \(1/2\), with equality for the odd numbers; for even \(k\)
+the only periodic \(k\)-admissible set is the empty set.
+\end{theorem}
+
+So the benchmark density is \(1/2\) for odd \(k\) and \(0\) for even \(k\),
+and ``beating the odd numbers'' is a meaningful goal exactly when \(k\) is
+odd. For even \(k\) even a single residue class must be pruned, and every
+construction has to be aperiodic from the outset.
+
+\subsection{Results}
+
+\begin{theorem}[odd multipliers]\label{thm:odd-main}
+For every odd \(k\geq1\) there are constants \(\varepsilon_k>0\) and \(N_k\)
+such that
+\[
+ f_k(N)\geq\left(\frac12+\varepsilon_k\right)N
+ \qquad(N\geq N_k).
+\]
+\end{theorem}
+
+For \(k=1\) this is \cite[Theorem 1.1]{DellaPietra2026} and contains nothing
+new; the content here is that the argument transfers to every odd \(k\) with
+the \emph{same} certified parameter window and only \(k\)-dependent
+multiplicative constants. Combined with the upper bound of
+\cite{Leon2026} --- itself a thread posting, independently checked but not
+refereed --- this would give, for example,
+\[
+ \tfrac12<\liminf_{N\to\infty}\frac{f_3(N)}{N}
+ \leq\limsup_{N\to\infty}\frac{f_3(N)}{N}\leq0.6089 .
+\]
+
+\begin{theorem}[all multipliers]\label{thm:all-k}
+For every \(k\geq1\) there is a constant \(c_k>0\) such that
+\(f_k(N)\geq c_kN\) for all sufficiently large \(N\).
+\end{theorem}
+
+For odd \(k\), Theorem~\ref{thm:all-k} is trivial: the odd numbers already
+have density \(1/2\). Its content is for even \(k\), where by
+Theorem~\ref{thm:benchmark} no such trivial set exists. At \(k=2\) it reproves
+Sawin's theorem by the route of \cite[\S4]{DellaPietra2026}; for even
+\(k\geq4\) it is, to our knowledge, the first lower bound of any kind. It uses
+only the source half of the machinery, not the two-endpoint estimate, and is
+therefore the more robust of the two results. Because both
+analytic inputs carry unspecified absolute constants, \(c_k\) is not
+effective as stated; see Section~\ref{sec:gaps}.
+
+\subsection{What does not close}
+
+We do not prove \(f_2(N)\geq(1/2+\varepsilon)N\), nor any bound for even \(k\)
+beyond positive density. Section~\ref{sec:even} records three separate reasons,
+each of which is proved rather than asserted: the absence of a periodic
+layer (Theorem~\ref{thm:benchmark}), the dilation identity
+(Proposition~\ref{prop:dilation}), which shows that every rescaled layer of an even-\(k\)
+construction is again an even-multiplier problem, and the fact that the
+roughness cutoff, which is what buys the saving in the source estimate, caps
+the density of the source at \(O(\rhoL)\). We also record, in
+Proposition~\ref{prop:fibration}, a corrected form of the largest-prime-factor
+observation from the thread, and show that its contraction constant
+\(\log2<1\) prevents it from bootstrapping any density.
+
+\subsection{Method and organisation}
+
+Section~\ref{sec:benchmark} is self-contained and elementary. Section~\ref{sec:inputs}
+recalls the two analytic inputs and the centered anatomy of
+\cite{DellaPietra2026} verbatim; nothing there is new.
+Section~\ref{sec:source} generalises the source estimate from the modulus \(2\) to an
+arbitrary fixed modulus \(m\) and proves Theorem~\ref{thm:all-k}.
+Section~\ref{sec:mixed} generalises the two-endpoint mixed estimate to odd
+\(k\), and this is where the dilation \(\lambda(k)\) of \eqref{eq:lambda} is
+introduced and where Remark~\ref{rem:lambda-two} explains why the naive
+dilation \(2\) is fatal. Section~\ref{sec:assembly} assembles
+Theorem~\ref{thm:odd-main}. Section~\ref{sec:even} treats the
+even case and the obstruction. Section~\ref{sec:gaps} lists every step that is
+imported, flagged, or unverified, and Section~\ref{sec:repro} describes the
+verifier, the prior-work search and the AI-use disclosure.
+
+\section{The correct benchmark}\label{sec:benchmark}
+
+Everything in this section is elementary and is confirmed exhaustively by the
+verifier.
+
+\begin{lemma}[conflict criterion]\label{lem:criterion}
+Let \(a\ne b\) be positive integers, \(g=(a,b)\), and \(x=(a+b)/g\). Then for
+every \(k\geq1\),
+\[
+ a+b\mid kab
+ \qquad\Longleftrightarrow\qquad
+ \frac{x}{(x,k)}\ \Big|\ g .
+\]
+\end{lemma}
+
+\begin{proof}
+Write \(a=gu\), \(b=gv\) with \((u,v)=1\), so \(x=u+v\) and \(a+b=gx\),
+\(kab=kg^2uv\). Thus \(a+b\mid kab\) if and only if \(x\mid kguv\). Now
+\((x,u)=(u+v,u)=(v,u)=1\) and likewise \((x,v)=1\), so \((x,uv)=1\) and the
+condition is \(x\mid kg\). Finally, for every prime \(p\),
+\[
+ v_p(x)\leq v_p(k)+v_p(g)
+ \iff
+ v_p(g)\geq v_p(x)-\min\bigl(v_p(x),v_p(k)\bigr)
+ =v_p\!\left(\frac{x}{(x,k)}\right),
+\]
+which is the stated divisibility.
+\end{proof}
+
+\begin{corollary}[two-adic restriction]\label{cor:twoadic}
+Let \(a,b\) be distinct odd integers with \(a+b\mid kab\). Then
+\(v_2(a+b)\leq v_2(k)\). In particular, for \(k=2\) one has
+\(a\equiv b\pmod4\): the conflict graph of the multiplier \(2\) on the odd
+numbers has no edge between the classes \(1\) and \(3\) modulo \(4\).
+\end{corollary}
+
+\begin{proof}
+Here \(g\mid a\) is odd, so \(v_2(x)=v_2(gx)=v_2(a+b)\). By
+Lemma~\ref{lem:criterion} we have \(x\mid kg\), whence
+\(v_2(x)\leq v_2(k)\). For \(k=2\) this gives \(v_2(a+b)\leq1\), and since
+\(a,b\) are odd, \(a+b\equiv2\pmod4\), i.e.\ \(a\equiv b\pmod4\).
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:benchmark}]
+(1) If \(a,b\) are odd then \(a+b\) is even while \(kab\) is odd, so
+\eqref{eq:kadm} holds. A class \(C_{r,M}\) with \(M\) even and \(r\) odd
+consists of odd numbers.
+
+(2) Suppose we are not in case (1), i.e.\ \(k\) is even, or \(M\) is odd, or
+\(r\) is even. Put
+\[
+ u=1,\qquad v=1+2M,\qquad x=u+v=2(1+M),\qquad y=\frac{x}{(x,k)} .
+\]
+We claim \((y,M)\mid r\). Let \(p\) be a prime dividing \(M\). If \(p\) is
+odd then \(x=2+2M\equiv2\pmod p\), so \(p\nmid x\) and hence \(p\nmid y\).
+If \(p=2\), then \(M\) is even, so \(1+M\) is odd and \(v_2(x)=1\); therefore
+\(v_2(y)=1-\min(1,v_2(k))\), which is \(0\) when \(k\) is even and \(1\) when
+\(k\) is odd. Consequently
+\[
+ (y,M)=
+ \begin{cases}
+ 2,&\text{\(M\) even and \(k\) odd},\\
+ 1,&\text{otherwise},
+ \end{cases}
+\]
+and in each of the three cases excluded from (1) we get \((y,M)\mid r\):
+if \(k\) is even or \(M\) is odd then \((y,M)=1\), and if \(M\) is even,
+\(k\) is odd and \(r\) is even then \((y,M)=2\mid r\).
+
+Since \((y,M)\mid r\), the simultaneous congruences \(g\equiv0\pmod y\) and
+\(g\equiv r\pmod M\) have a positive solution \(g\). Put
+\begin{equation}\label{eq:witness}
+ a=g,\qquad b=g(1+2M).
+\end{equation}
+Then \(a\equiv r\) and \(b\equiv g\equiv r\pmod M\), and \(a\ne b\) because
+\(1+2M>1\). Moreover \((a,b)=g\) and \((a+b)/g=1+v=x\), so
+Lemma~\ref{lem:criterion} applies with this \(g\) and this \(x\): since \(y\mid g\)
+we conclude \(a+b\mid kab\).
+
+For the final statement, a union \(A\) of classes modulo \(M\) is
+\(k\)-admissible only if each individual class is, since a conflict inside one
+class is a conflict inside \(A\); and conversely, if every class of \(A\) is
+of type (1) then \(A\) consists of odd numbers and is \(k\)-admissible by (1).
+For odd \(k\) the admissible classes are exactly the odd classes, whose union
+has density at most \(1/2\); for even \(k\) case (1) is vacuous.
+\end{proof}
+
+\begin{remark}
+The threshold in Theorem~\ref{thm:benchmark} is delicate. The class
+\(7\bmod10\) contains no \(2\)-conflict among its elements below \(897\); its
+first three conflicts are \((117,897)\), \((357,1377)\) and \((77,1617)\). A
+purely computational search in a box of size a few hundred would have reported
+the wrong benchmark. Note also that the witness \eqref{eq:witness} is explicit
+but not minimal: at \(k=2\), \(M=10\), \(r=7\) it has \(y=11\) and \(g=77\),
+returning the third of those pairs and not the first. The construction is
+designed to be uniform in \((k,M,r)\), not sharp.
+\end{remark}
+
+\begin{proposition}[dilation identity]\label{prop:dilation}
+Let \(\lambda\) be a positive integer. A set \(A\) satisfies
+\(\lambda a+\lambda b\nmid k(\lambda a)(\lambda b)\) for all distinct
+\(a,b\in A\) if and only if \(A\) is \(k\lambda\)-admissible. Consequently
+\[
+ f_k(N)\geq f_{k\lambda}\!\left(\floor{N/\lambda}\right).
+\]
+\end{proposition}
+
+\begin{proof}
+\(\lambda(a+b)\mid k\lambda^2ab\) if and only if \(a+b\mid k\lambda ab\).
+\end{proof}
+
+This is the identity behind the two-layer construction: the even part of a
+\(1\)-admissible set is \(2\) times a \(2\)-admissible set, an equivalence
+already recorded in the thread. It also shows that for even \(k\) every
+dilated layer carries an even multiplier, so Theorem~\ref{thm:benchmark} denies a
+periodic layer at every scale.
+
+\section{Notation and imported analytic inputs}\label{sec:inputs}
+
+All logarithms are natural, \(\Om(n)\) is the number of prime factors of
+\(n\) with multiplicity, \(\Pmin(n)\) is the least prime factor of \(n\) with
+\(\Pmin(1)=+\infty\), and for real \(L>2\)
+\[
+ \Om_L(n,x)=\sum_{\substack{p^\nu\parallel n\\L\leq p\leq x}}\nu,
+ \qquad
+ \rhoL=\prod_{p<L}\left(1-\frac1p\right).
+\]
+An integer is \(L\)-rough if it has no prime factor below \(L\), and
+\((L,A,K)\)-regular if
+\begin{equation}\label{eq:regular}
+ \Om_L(n,x)\leq A\log\frac{\log x}{\log L}+K\qquad(x\geq L).
+\end{equation}
+For an integer \(n\) and a cutoff \(L\) we write \(n=n_{<L}n_{\geq L}\) for
+the factorisation into the \(L\)-smooth and \(L\)-rough parts.
+
+We import three statements from \cite{DellaPietra2026} without change. The
+first two are the analytic inputs; the third is the centered tail estimate,
+whose proof involves no multiplier and is reproduced there in full.
+
+\begin{proposition}[one-variable mean value; {\cite[Prop.~2.1]{DellaPietra2026}},
+after {\cite[Thm.~III.3.5]{Tenenbaum2015}}]\label{prop:one-variable}
+Let \(g\) be a nonnegative multiplicative function with
+\(\sum_{p\leq y}g(p)\log p\leq C_1y\) for all \(y\geq1\) and
+\(\sum_p\sum_{\nu\geq2}g(p^\nu)\log(p^\nu)p^{-\nu}\leq C_2\). Then
+\[
+ \sum_{n\leq Y}g(n)\ll(C_1+C_2+1)Y
+ \prod_{p\leq Y}\left(1-\frac1p+\sum_{\nu\geq1}\frac{g(p^\nu)}{p^\nu}\right)
+\]
+with an absolute implied constant.
+\end{proposition}
+
+\begin{proposition}[three linear forms; {\cite[\S2]{DellaPietra2026}},
+after {\cite[Thm.~3.1]{BretecheTenenbaum2026}}]\label{prop:dBT}
+Let \(Q_1,Q_2,Q_3\in\Z[U,V]\) be fixed, primitive, pairwise nonproportional
+linear forms, and let \(F:\N^3\to\R_{\geq0}\) be multiplicative in the sense
+that \(F(a_1b_1,a_2b_2,a_3b_3)\leq F(b_1,b_2,b_3)\) whenever
+\((a_1a_2a_3,b_1b_2b_3)=1\). Then, on every box of side lengths comparable to
+\(X\),
+\begin{equation}\label{eq:dBT-shape}
+ \sum_{(u,v)}F\bigl(Q_1(u,v),Q_2(u,v),Q_3(u,v)\bigr)
+ \ll X^2E_{F,Q}(CX)\prod_{3<p\leq CX}\left(1-\frac{\rho_Q^+(p)}{p^2}\right),
+\end{equation}
+where \(\rho_Q^+(p)=\#\{(u,v)\bmod p:p\mid Q_1Q_2Q_3(u,v)\}\), \(C\) depends
+only on the forms and the box aspect ratio, and \(E_{F,Q}\) is bounded by the
+product of its local prime-power factors. For the triples used below a local
+pattern with exactly one positive valuation \(e\) has density
+\begin{equation}\label{eq:axis-density}
+ \frac{(1-p^{-1})^2}{p^e}
+\end{equation}
+at every odd prime, and patterns with two or three positive valuations
+vanish. The implied constant is uniform over the class once the forms and
+the box aspect ratio are fixed; this is what permits \(F\) to depend on the
+cutoff \(L\).
+\end{proposition}
+
+\begin{lemma}[centered maximal tail;
+{\cite[Lem.~3.1]{DellaPietra2026}}]\label{lem:centered-tail}
+Fix \(1<z<2\) and \(A>0\) with \(A\log z>z-1\). Uniformly for real \(L>2\),
+\(Y\geq1\) and \(K\geq0\),
+\[
+ \#\{n\leq Y:n\text{ is not }(L,A,K)\text{-regular}\}\ll_{A,z}Yz^{-K},
+\]
+and among \(L\)-rough integers the same count is
+\(\ll_{A,z}Y\rhoL z^{-K}\).
+\end{lemma}
+
+\section{The source estimate for an arbitrary modulus}\label{sec:source}
+
+Fix an integer \(m\geq1\). This section proves the existence of an
+\(m\)-admissible set of positive density. The argument is
+\cite[\S4]{DellaPietra2026} with \(2\) replaced by \(m\); we display the four
+places where the multiplier intervenes, each of which costs only a constant.
+
+Throughout, \(\delta\in(0,1)\), \(1<A<3/(2\log4)\), \(K\geq0\) and
+\(L>m\) are fixed, and
+\[
+ S=S(N;m,L,A,K)=\{b\in[\delta N,N]:\Pmin(b)\geq L,\
+ b\text{ is }(L,A,K)\text{-regular}\}.
+\]
+
+\begin{lemma}[source density;
+{\cite[Lem.~4.1]{DellaPietra2026}}]\label{lem:source-density}
+There is \(K_0=K_0(A,\delta)\), independent of \(L\) and of \(m\), such that
+for \(K\geq K_0\), every fixed \(L>2\) and all large \(N\),
+\(\abs{S}\geq\frac{1-\delta}{2}N\rhoL\).
+\end{lemma}
+
+Call \(b\in S\) \emph{bad} if there is \(c\leq N\), \(c\ne b\), with
+\begin{equation}\label{eq:source-conflict}
+ b+c\mid mbc,\qquad \Om(c)\leq\Om(b),
+\end{equation}
+and let \(T=T(N;m,L,A,K)\) be the number of bad \(b\).
+
+\begin{lemma}[generalised Sawin coordinates]\label{lem:source-coords}
+Let \(b\in S\) and \(c\) satisfy \eqref{eq:source-conflict}. Put
+\(g=(b,c)\), \(u=b/g\), \(v=c/g\) and \(x=u+v\). Then
+\begin{equation}\label{eq:source-coords}
+ (u,v)=1,\quad ux\mid mb,\quad v\leq\delta^{-1}u,\quad
+ \Om(v)\leq\Om(u),\quad u\geq L,\quad x>L,
+\end{equation}
+and, writing \(mb=uxd\), the \(L\)-smooth part of \(uxd\) is exactly \(m\);
+in particular \(u\) is \(L\)-rough and \(x_{<L}d_{<L}=m\).
+\end{lemma}
+
+\begin{proof}
+By Lemma~\ref{lem:criterion}, \(x\mid mg\), hence \(ux\mid mgu=mb\); the
+remaining inequalities in \eqref{eq:source-coords} follow from \(c/b=v/u\),
+the ranges of \(b,c\), and complete additivity of \(\Om\). Since \(u\mid b\)
+and \(b\) is \(L\)-rough, \(u\) is \(L\)-rough. If \(u=1\) then
+\(\Om(v)\leq\Om(u)=0\) forces \(v=1\) and \(c=b\), which is excluded;
+therefore \(u\geq L\) and \(x=u+v>L\). Finally \(uxd=mb\) with \(b\)
+\(L\)-rough and \(m\) itself \(L\)-smooth, so the \(L\)-smooth part of the
+left side is \(m\).
+\end{proof}
+
+Compared with \cite[(4.3)]{DellaPietra2026} the exclusion \(x\geq L\) is
+obtained here from the roughness of \(u\) rather than from a case analysis at
+\(2\); this is the form that survives an arbitrary multiplier.
+
+\begin{proposition}[source estimate]\label{prop:source-estimate}
+Put \(M=A\log4\). For every fixed \(K,L\) and all sufficiently large \(N\),
+\begin{equation}\label{eq:source-raw}
+ \frac{T(N;m,L,A,K)}{N\rhoL}
+ \ll_{A,\delta,m}
+ 4^K\left\{(\log L)^{-3/2}+(\log L)^{1/4-M}(\log N)^{M-3/2}\right\}.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+We follow \cite[Prop.~4.2]{DellaPietra2026}, indicating the four changes.
+
+\emph{(i) The indicator.} Since \(L>m\), every prime factor of \(m\) is below
+\(L\), so \(\Om_L(b,x)=\Om_L(mb,x)\). At the scale \(x\),
+Lemma~\ref{lem:source-coords} and \(mb=uxd\) give
+\[
+ \Om_L(b,x)=\Om_L(u,x)+\Om_L(x,x)+\Om_L(d,x)
+ =\Om(u)+\Om_L(x,x)+\Om_L(d,x),
+\]
+where the last step used \(u\leq x\) and the roughness of \(u\). Since \(x_{<L}\mid m\),
+\(\Om_L(x,x)\geq\Om(x)-\Om(m)\), so regularity at \(x\) yields
+\[
+ \Om(u)+\Om(x)+\Om_L(d,x)\leq A\log\frac{\log x}{\log L}+K+\Om(m).
+\]
+Exponentiating with base \(4\) bounds the indicator by
+\begin{equation}\label{eq:source-indicator}
+ 4^{K+\Om(m)}\left(\frac{\log x}{\log L}\right)^{M}
+ 4^{-\Om(u)}4^{-\Om(x)}4^{-\Om_L(d,x)} .
+\end{equation}
+Relative to the case \(m=2\) this costs the constant \(4^{\Om(m)-1}\).
+
+\emph{(ii) The residual sum.} Write \(d=d_{<L}d_{\geq L}\) with
+\(d_{<L}\mid m\). Since \(\Om_L\) ignores primes below \(L\),
+\[
+ R(D)=\sum_{\substack{d\leq D\\ d_{<L}\mid m}}4^{-\Om_L(d,x)}
+ =\sum_{d_0\mid m}\ \sum_{\substack{d_1\leq D/d_0\\ \Pmin(d_1)\geq L}}
+ 4^{-\Om_L(d_1,x)} ,
+\]
+a sum of \(\tau(m)\) copies of the sum treated in
+\cite[(4.6)]{DellaPietra2026}. Proposition~\ref{prop:one-variable} applies with local
+factors \(1-p^{-1}\) for \(p<L\), \(1-\frac{3}{4p}+O(p^{-2})\) for
+\(L\leq p\leq x\), and \(1+O(p^{-2})\) elsewhere, giving
+\begin{equation}\label{eq:source-residual}
+ R(D)\ll_m D\left\{(\log x)^{-3/4}(\log L)^{-1/4}+(\log(3D))^{-3/4}\right\}.
+\end{equation}
+
+\emph{(iii) The three-form sum.} Because \(\Om(v)\leq\Om(u)\),
+\[
+ 4^{-\Om(u)}4^{-\Om(x)}\leq g_{1,L}(u)g_2(v)g_{3,L}(x),
+\]
+where \(g_{1,L}(n)=2^{-\Om(n)}\1_{\Pmin(n)\geq L}\),
+\(g_2(n)=2^{-\Om(n)}\) and
+\(g_{3,L}(n)=4^{-\Om(n)}\1_{n_{<L}\mid m}\). Setting
+\(F_L(n_1,n_2,n_3)=\1_{(n_1,n_2)=1}g_{1,L}(n_1)g_2(n_2)g_{3,L}(n_3)\), the
+hypothesis of Proposition~\ref{prop:dBT} holds uniformly in \(L\), and we apply it to
+\(Q=(U,V,U+V)\), for which \(\rho_Q^+(p)=3p-2\) at every prime. By
+\eqref{eq:axis-density} the local factor at an odd \(p\geq L\) is exactly
+\[
+ 1+(1-p^{-1})^2\left(\frac1{2p-1}+\frac1{2p-1}+\frac1{4p-1}\right)
+ =1+\frac{5}{4p}+O(p^{-2}),
+\]
+while at \(2<p<L\) with \(p\nmid m\) only the \(V\)-axis survives, giving
+\(1+\frac1{2p}+O(p^{-2})\). At the finitely many primes dividing \(2m\) the
+\(U+V\)-axis is permitted up to valuation \(v_p(m)\) and the factor is
+multiplied by a bounded amount, absorbed into the constant. Mertens'
+estimate and the root-sieve product \(\ll(\log X)^{-3}\) give, on
+\(u\in[X,2X]\),
+\begin{equation}\label{eq:source-three-form}
+ \sum_{\substack{X\leq u<2X\\0<v\leq\delta^{-1}u\\(u,v)=1}}
+ g_{1,L}(u)g_2(v)g_{3,L}(u+v)
+ \ll_{\delta,m}X^2(\log X)^{-7/4}(\log L)^{-3/4},
+\end{equation}
+with every nonzero block satisfying \(X\gg_\delta L\).
+
+\emph{(iv) The dyadic assembly.} This is identical to
+\cite[Prop.~4.2]{DellaPietra2026}, with \(D=mN/(ux)\) in
+\eqref{eq:source-residual}; the replacement of \(m\) for \(2\) changes \(D\)
+by the bounded factor \(m/2\), hence changes \(\log(3D)\) by \(O_m(1)\).
+Combining \eqref{eq:source-indicator}, \eqref{eq:source-residual} and
+\eqref{eq:source-three-form} and dividing by \(N\rhoL\), one block
+contributes \(\ll4^K(\log L)^{-M}(\log X)^{M-5/2}\) from the first residual
+term; since \(M<3/2\) the dyadic sum over \(X\gg L\) converges to
+\(\ll(\log L)^{M-3/2}\), leaving \(4^K(\log L)^{-3/2}\). The second residual
+term contributes the second summand of \eqref{eq:source-raw} exactly as
+there.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:all-k}]
+For odd \(k\) the odd numbers already give \(f_k(N)\geq\lceil N/2\rceil\) by
+Theorem~\ref{thm:benchmark}(1), with a far better constant than the one below;
+so assume \(k\) is even. Apply the above
+with \(m=k\), \(\delta=1/2\) and a fixed \(A\in(1,3/(2\log4))\). (The
+argument below in fact works verbatim for every \(k\geq2\); only for even
+\(k\) does it say anything.) Choose
+\(K\geq K_0(A,\delta)\) from Lemma~\ref{lem:source-density}. Because
+\(M=A\log4<3/2\), the first term of the right side of \eqref{eq:source-raw}
+can be made at most \(\frac{1-\delta}{8}\) by fixing \(L>k\) large enough, and
+with that \(L\) fixed the second term tends to \(0\), so is also at most
+\(\frac{1-\delta}{8}\) for large \(N\). Hence
+\(T\leq\frac{1-\delta}{4}N\rhoL\leq\frac12\abs{S}\) by
+Lemma~\ref{lem:source-density}. Delete every bad \(b\) from \(S\) and call the
+survivors \(B\). If distinct
+\(b,d\in B\) satisfied \(b+d\mid mbd\), then relabelling so that
+\(\Om(d)\leq\Om(b)\) makes \(b\) bad, a contradiction; hence \(B\) is
+\(k\)-admissible. For all large \(N\),
+\(\abs{B}\geq\frac12\abs{S}\geq\frac{1-\delta}{4}N\rhoL=\frac18N\rhoL\), so
+\(c_k=\rhoL/8\) works.
+\end{proof}
+
+\section{The two-endpoint estimate for odd \texorpdfstring{\(k\)}{k}}
+\label{sec:mixed}
+
+From now on \(k\) is odd, and we fix the dilation
+\begin{equation}\label{eq:lambda}
+ \lambda=\lambda(k)=\min\{2^j:j\geq1,\ 2^j\geq k\},
+\end{equation}
+the least even power of two that is at least \(k\). The construction of
+Theorem~\ref{thm:odd-main} is
+\[
+ A_N=(O_N\setminus\Gamma_N)\cup\lambda B_N\subseteq\{1,\ldots,\lambda N\},
+\]
+where \(O_N\) is a set of odd integers up to \(\lambda N\),
+\(B_N\subseteq[\delta N,N]\) is \(k\lambda\)-admissible --- so that
+\(\lambda B_N\) has no internal conflict, by
+Proposition~\ref{prop:dilation} --- and \(\Gamma_N\) removes the mixed
+conflicts. Two odd elements never conflict because \(k\) is odd. It therefore
+remains to count the pairs \((a,b)\) with \(a\) odd, \(b\in B_N\) and
+\begin{equation}\label{eq:mixed-conflict}
+ a+\lambda b\mid k\lambda ab .
+\end{equation}
+
+The choice of \(\lambda\) is not cosmetic. For \(k=1\) one may take
+\(\lambda=2\), as \cite{DellaPietra2026} does, but that choice is fatal as
+soon as \(3\mid k\) or \(5\mid k\).
+
+\begin{remark}[why \(\lambda=2\) fails]\label{rem:lambda-two}
+Let \(n\) be odd. If \(3\mid k\) then \(n+2n=3n\) divides
+\(k\cdot n\cdot 2n=2kn^2\), so \(\{n,2n\}\) is never \(k\)-admissible. With
+\(\lambda=2\) each \(b\in B_N\) would then force the deletion of the odd
+number \(b\) itself from \(O_N\), and that loss cancels the entire gain
+\(\abs{B_N}\): the construction yields nothing. If \(5\mid k\) then
+\(3n+2n=5n\) divides \(k\cdot3n\cdot2n\), so \(\{2n,3n\}\) is never
+\(k\)-admissible, and the same objection applies to a positive proportion of
+\(B_N\). In the coordinates of Lemma~\ref{lem:mixed-coordinates} these are
+exactly the families with \(u=1\), which exist precisely when \(w+\lambda\)
+divides \(k\) for some admissible \(w\). Choosing \(\lambda\geq k\) forces
+\(w+\lambda>k\) and eliminates all of them; this is the sole purpose of
+\eqref{eq:lambda}. These families are invisible at \(k=1\), which is why they
+do not arise in \cite{DellaPietra2026}.
+\end{remark}
+
+\begin{lemma}[mixed coordinates]\label{lem:mixed-coordinates}
+Let \(k\) be odd, let \(\lambda\) be as in \eqref{eq:lambda}, let \(a\) be odd
+and let \(b\) be odd and \(L\)-rough, and suppose \eqref{eq:mixed-conflict}
+holds. Put \(g=(a,b)\), \(w=a/g\), \(u=b/g\), \(x=w+\lambda u\),
+\(\kappa=(x,k)\) and \(x'=x/\kappa\). Then \((u,w)=1\), all of \(t=g/x'\),
+\(u\), \(w\), \(x\) are odd, \(x'\mid g\),
+\begin{equation}\label{eq:mixed-coords}
+ a=tx'w,\qquad b=tx'u,
+\end{equation}
+and \(\kappa\) is the \(L\)-smooth part of \(x\), so that \(\kappa\mid k\) and
+\(t,u,x'\) are \(L\)-rough. Conversely every such tuple gives a conflict.
+
+If in addition \(a\leq\lambda N\), \(b\geq\delta N\) and
+\(L>\lambda(1+\delta^{-1})\), then
+\begin{equation}\label{eq:u-lower}
+ u\geq L,\qquad\text{and hence}\qquad x>\lambda u\geq\lambda L .
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Apply Lemma~\ref{lem:criterion} to the pair \((a,\lambda b)\) with multiplier
+\(k\lambda\). Here \((a,\lambda b)=(a,b)=g\) because \(a\) is odd and
+\(\lambda\) is a power of two; the reduced pair is \((w,\lambda u)\), coprime
+because \(w\) is odd and \((w,u)=1\); and \((a+\lambda b)/g=w+\lambda u=x\),
+which is odd. Lemma~\ref{lem:criterion} makes the conflict equivalent to
+\(x/(x,k\lambda)\mid g\), and \(x\) is odd while \(\lambda\) is a power of
+two, so \((x,k\lambda)=(x,k)=\kappa\). Hence the conflict is equivalent
+to \(x'\) dividing \(g\), which gives \eqref{eq:mixed-coords} with
+\(t=g/x'\). Since \(b=tx'u\) is \(L\)-rough, so are \(t\), \(x'\) and \(u\);
+therefore the \(L\)-smooth part of \(x=\kappa x'\) is \(\kappa\), and
+\(\kappa\mid k\) by definition. All the variables are odd because \(a\) and
+\(b\) are and \(k\) is. The converse is immediate from
+Lemma~\ref{lem:criterion}.
+
+For \eqref{eq:u-lower}, suppose \(u=1\). Then \(g=b\), so
+\(w=a/b\leq\lambda N/(\delta N)=\lambda\delta^{-1}\) and
+\[
+ x=w+\lambda\leq\lambda(1+\delta^{-1})<L .
+\]
+Since \(x'\mid g=b\) and \(b\) is \(L\)-rough, \(x'\) is \(L\)-rough; as
+\(1\leq x'\leq x<L\), this forces \(x'=1\), that is \(x\mid k\). But
+\(x=w+\lambda>\lambda\geq k\) by \eqref{eq:lambda}, and no divisor of \(k\)
+exceeds \(k\). This contradiction shows \(u\neq1\). Since \(u\mid b\) and
+\(b\) is \(L\)-rough, \(u\) is \(L\)-rough, so \(u\geq L\); and
+\(x=w+\lambda u>\lambda u\geq\lambda L\).
+\end{proof}
+
+Fix positive \(A_b,A_o,K_b,K_o\), bases \(q_b,q_o>1\), \(\delta\in(0,1)\),
+\(\lambda\) as in \eqref{eq:lambda}, and \(L>\lambda(1+\delta^{-1})\). Let
+\(S\subseteq[\delta N,N]\) be the \(L\)-rough integers obeying the centered
+\((A_b,K_b)\) bound, and let \(O\) be the odd \(a\leq\lambda N\) obeying the
+centered \((A_o,K_o)\) bound. Put
+\[
+ E^{(k)}_{\rm mix}(N)=\#\{(a,b)\in O\times S:a+\lambda b\mid k\lambda ab\},
+\]
+\[
+ \alpha=q_b^{-1},\quad\beta=q_o^{-1},\quad s=(q_bq_o)^{-1},\quad
+ M=A_b\log q_b+A_o\log q_o,\quad E=M+\alpha+\beta+2s-4 .
+\]
+
+\begin{proposition}[two-endpoint estimate]\label{prop:mixed-estimate}
+If \(E<-1\), then
+\begin{equation}\label{eq:mixed-final}
+ E^{(k)}_{\rm mix}(N)
+ \ll_{k,\delta}q_b^{K_b}q_o^{K_o}\left\{N(\log L)^{-2}+o_L(N)\right\},
+\end{equation}
+where the normalised \(o_L\)-function may be chosen independently of
+\(K_b,K_o\).
+\end{proposition}
+
+\begin{proof}
+We follow \cite[Prop.~5.2]{DellaPietra2026}. Sum over the at most
+\(\tau(k)\) values of \(\kappa\mid k\) separately; fix one.
+
+\emph{Anatomy.} By Lemma~\ref{lem:mixed-coordinates}, at the scale \(x\),
+\[
+ \Om_L(b,x)=\Om_L(t,x)+\Om(u)+\Om(x)-\Om(\kappa),
+\]
+\[
+ \Om_L(a,x)=\Om_L(t,x)+\Om(x)-\Om(\kappa)+\Om_L(w,x).
+\]
+Here we used \(u<x\), \(x'\leq x\) and the roughness of \(t,u,x'\). We also
+use \(\Om_L(w,x)\geq\Om_{\geq L}(w)-1\): indeed
+\(w\leq\lambda\delta^{-1}u<\lambda\delta^{-1}x\), so once
+\(x\geq\lambda\delta^{-1}\) --- guaranteed by \eqref{eq:u-lower} --- the
+integer \(w\) has at most one prime factor exceeding \(x\), since two would
+force \(w>x^2\). (The corresponding step of \cite{DellaPietra2026} is written as an
+equality; the discrepancy costs a single factor \(q_o\) and is flagged in
+Section~\ref{sec:gaps}.) Exponentiating the two regularity bounds with bases
+\(q_b,q_o\) majorises the joint indicator by
+\begin{equation}\label{eq:mixed-indicator}
+ C_k\,q_b^{K_b}q_o^{K_o}
+ \left(\frac{\log x}{\log L}\right)^{M}
+ \alpha^{\Om(u)}\beta^{\Om_{\geq L}(w)}s^{\Om(x)}s^{\Om_L(t,x)},
+ \qquad C_k=(q_bq_o)^{\Om(k)}q_o .
+\end{equation}
+This is \cite[(5.4)]{DellaPietra2026} times the constant \(C_k\).
+
+\emph{Residual sum.} With \(Y=\kappa N/(ux)\asymp_{k}N/(ux)\),
+Proposition~\ref{prop:one-variable} applied to
+\(h_{L,x}(t)=\1_{\Pmin(t)\geq L}s^{\Om_L(t,x)}\) gives
+\begin{equation}\label{eq:mixed-residual}
+ \sum_{\substack{\delta Y\leq t\leq Y\\\Pmin(t)\geq L}}s^{\Om_L(t,x)}
+ \ll_{s}Y\left\{(\log x)^{s-1}(\log L)^{-s}+(\log(3Y))^{s-1}\right\},
+\end{equation}
+exactly as in \cite[(5.5)]{DellaPietra2026}; the bounded factor \(\kappa\)
+changes \(Y\) and \(\log(3Y)\) by \(O_k(1)\).
+
+\emph{Three-form sum.} The forms are \(Q=(U,W,\lambda U+W)\). Because
+\(\lambda\) is a power of two it is invertible modulo every odd prime \(p\),
+so the three root lines are distinct there and \(\rho_Q^+(p)=3p-2\), exactly
+as for \(\lambda=2\); all the local computations below are therefore
+independent of \(\lambda\). At \(p=2\) all three values are forced odd and the
+local factor is \(1\). For \(2<p<L\) with
+\(p\nmid k\) only the \(W\)-axis is permitted and \eqref{eq:axis-density}
+gives the exact factor
+\begin{equation}\label{eq:mixed-small-factor}
+ \mathcal E_p=1+(1-p^{-1})^2\sum_{e\geq1}p^{-e}=1+\frac1p-\frac1{p^2};
+\end{equation}
+for the finitely many \(p\mid k\) with \(p<L\) the \(\lambda U+W\)-axis is permitted
+up to valuation \(v_p(\kappa)\leq v_p(k)\), which multiplies
+\eqref{eq:mixed-small-factor} by a factor between \(1\) and \(3/2\)
+(certified in the supplement), contributing an \(O_k(1)\) constant. For
+\(p\geq L\) the complete factor is
+\begin{equation}\label{eq:mixed-large-factor}
+ \mathcal E_p=1+(1-p^{-1})^2
+ \left(\frac{\alpha}{p-\alpha}+\frac{\beta}{p-\beta}+\frac{s}{p-s}\right)
+ =1+\frac{\alpha+\beta+s}{p}+O_{\alpha,\beta,s}(p^{-2}),
+\end{equation}
+with an error constant independent of \(L\). Hence, on \(u\in[X,2X]\),
+\begin{equation}\label{eq:mixed-three-form}
+ \sum_{\substack{X\leq u<2X\\0<w\leq\lambda\delta^{-1}u\\(u,w)=1}}
+ \alpha^{\Om(u)}\1_{2\nmid w}\beta^{\Om_{\geq L}(w)}s^{\Om(\lambda u+w)}
+ \1_{\Pmin(u)\geq L,\ (\lambda u+w)_{<L}\mid k}
+ \ll_k X^2(\log X)^{\alpha+\beta+s-3}(\log L)^{1-\alpha-\beta-s},
+\end{equation}
+with \(ux\asymp_{\delta,k}X^2\). Every block with a nonzero summand has
+\(X\geq L\): this is exactly \eqref{eq:u-lower}, and it is the point at which
+the choice \(\lambda\geq k\) is used. Without it the blocks with \(u=1\) would
+survive, and by Remark~\ref{rem:lambda-two} they carry a positive proportion
+of the source whenever \(3\mid k\) or \(5\mid k\), destroying the estimate.
+
+\emph{Assembly.} Identical to \cite[Prop.~5.2]{DellaPietra2026}. Inserting
+the first term of \eqref{eq:mixed-residual} into
+\eqref{eq:mixed-indicator} and using \eqref{eq:mixed-three-form}, one block
+contributes \(\ll C_kq_b^{K_b}q_o^{K_o}N(\log X)^{E}(\log L)^{-E-3}\); since
+\(E<-1\) the dyadic sum from \(X\geq L\) is \(\ll(\log L)^{E+1}\), leaving
+exactly \(N(\log L)^{-2}\). The second residual term is \(o_L(N)\) after
+normalisation by the same three-way split at \(\log X=\frac14\log N\) as
+there. Summing over the \(\tau(k)\) values of \(\kappa\) multiplies the
+result by \(O_k(1)\).
+\end{proof}
+
+\section{The parameter window and the proof of Theorem~\ref{thm:odd-main}}
+\label{sec:assembly}
+
+The window is that of \cite[\S6]{DellaPietra2026}; no inequality in it
+mentions \(k\).
+
+\begin{lemma}[certified window;
+{\cite[\S6]{DellaPietra2026}}]\label{lem:window}
+The rationals
+\begin{equation}\label{eq:parameters}
+\begin{aligned}
+ A_b&=1.000001,&q_b&=2.48933,&A_o&=1.16312,\\
+ q_o&=1.34288,&z_o&=1.34305,&c&=3.3912
+\end{aligned}
+\end{equation}
+satisfy the five strict inequalities
+\begin{equation}\label{eq:parameter-inequalities}
+ A_b\log4<\tfrac32,\quad
+ A_o\log z_o>z_o-1,\quad
+ c\log z_o>1,\quad
+ c\log q_o<1,\quad
+ E<-1,
+\end{equation}
+with the certified one-sided margins of Table~\ref{tab:margins}.
+\end{lemma}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{ll}
+\hline
+quantity & certified one-sided margin\\
+\hline
+\(A_b\log4-5/2<-1\) & upper value \(<-1.1137042525\)\\
+\(A_o\log z_o-(z_o-1)>0\) & \(>0.0000042730\)\\
+\(c\log z_o-1>0\) & \(>0.0002111998\)\\
+\(1-c\log q_o>0\) & \(>0.0002180771\)\\
+\(E<-1\) & upper value \(<-1.0004077237\)\\
+\hline
+\end{tabular}
+\caption{Strict parameter margins, recertified by rational interval
+arithmetic in the supplement. Every logarithm is enclosed in a rational
+interval of width below \(10^{-80}\).}
+\label{tab:margins}
+\end{table}
+
+\begin{theorem}\label{thm:even-form}
+Let \(k\) be odd and let \(\lambda=\lambda(k)\) be as in \eqref{eq:lambda}.
+There is an absolute \(\eta_k>0\) such that for every sufficiently large
+\(N\) there is a \(k\)-admissible \(A_N\subseteq\{1,\ldots,\lambda N\}\) with
+\[
+ \abs{A_N}\geq\frac{\lambda N}{2}+\eta_k N .
+\]
+\end{theorem}
+
+\begin{proof}
+Fix \eqref{eq:parameters} and \(\delta=1/2\). Choose \(z_b\in(1,2)\) with
+\(A_b\log z_b>z_b-1\), and then, by Lemma~\ref{lem:source-density}, a fixed
+\(K_b\) retaining a uniform positive proportion of every \(L\)-rough source
+interval. This choice precedes \(L\).
+
+For each \(N\) let \(S_N\subseteq[N/2,N]\) be the \(L\)-rough integers
+satisfying the centered \((A_b,K_b)\) condition, so that
+\(\abs{S_N}\geq\frac14N\rhoL\) for fixed \(L\) and all large \(N\). Delete
+from \(S_N\) every \(b\) admitting \(d\leq N\), \(d\ne b\), with
+\(b+d\mid k\lambda bd\) and \(\Om(d)\leq\Om(b)\), and call the survivors
+\(B_N\). By the argument in the proof of Theorem~\ref{thm:all-k}, \(B_N\) is
+\(k\lambda\)-admissible. Applying Proposition~\ref{prop:source-estimate} with
+\(m=k\lambda\) and using \(A_b\log4<3/2\), choose
+\(L>\max\{k\lambda,\ \lambda(1+\delta^{-1})\}=k\lambda\vee3\lambda\), after
+\(K_b\), so large that the
+first term of the right side of \eqref{eq:source-raw} is at most
+\(\frac18\); the second term is then at most \(\frac18\) for large \(N\), so
+the total loss is at most \(\frac14N\rhoL\leq\frac12\abs{S_N}\) and
+\begin{equation}\label{eq:B-density}
+ \abs{B_N}\geq\tfrac12\abs{S_N}\geq\tfrac18N\rhoL
+\end{equation}
+for all large \(N\).
+
+Put \(K_o=\lceil c\log\log L\rceil\) and let \(O_N\) be the odd
+\(a\leq\lambda N\) satisfying the centered \((A_o,K_o)\) condition, so that
+the total number of odd \(a\leq\lambda N\) is \(\frac{\lambda N}{2}+O(1)\). By
+Lemma~\ref{lem:centered-tail} and \(c\log z_o>1\),
+\[
+ \frac{\lambda N}{2}-\abs{O_N}\ll_\lambda Nz_o^{-K_o}
+ \ll_\lambda N(\log L)^{-c\log z_o}=o_L(N\rhoL),
+\]
+so enlarging \(L\) gives
+\begin{equation}\label{eq:odd-loss}
+ \frac{\lambda N}{2}-\abs{O_N}\leq\tfrac1{32}N\rhoL .
+\end{equation}
+Let \(E_N=E^{(k)}_{\rm mix}(N)\) be the number of \((a,b)\in O_N\times S_N\)
+with \(a+\lambda b\mid k\lambda ab\). By Proposition~\ref{prop:mixed-estimate}
+and \(E<-1\),
+\[
+ E_N\ll_kq_b^{K_b}q_o^{K_o}\left\{N(\log L)^{-2}+o_L(N)\right\}.
+\]
+Since \(K_b\) is fixed and \(q_o^{K_o}\ll(\log L)^{c\log q_o}\) with
+\(c\log q_o<1\), the first term is
+\(\ll_kN(\log L)^{-2+c\log q_o}=o_L(N\rhoL)\), because \(\rhoL\asymp1/\log L\)
+and \(-2+c\log q_o<-1\). The \(k\)-dependent constants \(C_k\) and
+\(\tau(k)\), and the dilation \(\lambda=\lambda(k)\), are all fixed before
+\(L\), so a further enlargement of \(L\), depending on \(k\), absorbs them. After \(L\) and hence \(K_o\) are fixed,
+take \(N\) large enough for the rough source asymptotic, the second source
+residual range, the odd-host bound and the normalised mixed
+\(o_L\)-term. Thus
+\begin{equation}\label{eq:edge-loss}
+ E_N\leq\tfrac1{32}N\rhoL .
+\end{equation}
+The choices were made in the legal order
+\[
+ \text{fixed real parameters},\ \lambda(k)
+ \longrightarrow K_b\longrightarrow L
+ \longrightarrow K_o\longrightarrow N .
+\]
+Note that \(\lambda\) depends only on \(k\), so it may be fixed at the very
+start; the cutoff \(L\) then depends on \(k\) through \(\lambda\), \(C_k\) and
+\(\tau(k)\), and \(N\) comes last. There is no circularity.
+
+Let \(\Gamma_N=\{a\in O_N:\exists\,b\in B_N,\ a+\lambda b\mid k\lambda ab\}\);
+since \(B_N\subseteq S_N\), \(\abs{\Gamma_N}\leq E_N\). Put
+\[
+ A_N=(O_N\setminus\Gamma_N)\cup\{\lambda b:b\in B_N\}
+ \subseteq\{1,\ldots,\lambda N\},
+\]
+a disjoint union because \(\lambda\) is even. Two odd members do not conflict,
+since their sum is even while \(kab\) is odd. Two even members
+\(\lambda b,\lambda d\) conflict exactly when \(b+d\mid k\lambda bd\), excluded
+by the \(k\lambda\)-admissibility of \(B_N\) and
+Proposition~\ref{prop:dilation}. Every mixed conflict was removed with
+\(\Gamma_N\). Hence \(A_N\) is \(k\)-admissible, and by
+\eqref{eq:B-density}, \eqref{eq:odd-loss} and \eqref{eq:edge-loss},
+\[
+ \abs{A_N}=\abs{O_N}-\abs{\Gamma_N}+\abs{B_N}
+ \geq\frac{\lambda N}{2}-\tfrac1{32}N\rhoL-\tfrac1{32}N\rhoL
+ +\tfrac18N\rhoL
+ =\frac{\lambda N}{2}+\tfrac1{16}N\rhoL .
+\]
+The selected \(L\) is an absolute constant depending only on \(k\), so
+\(\eta_k=\rhoL/16>0\).
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:odd-main}]
+Apply Theorem~\ref{thm:even-form} with \(N=\floor{X/\lambda}\). For all large
+\(X\) the resulting set lies in \(\{1,\ldots,X\}\) and has at least
+\[
+ \frac{\lambda}{2}\floor{X/\lambda}+\eta_k\floor{X/\lambda}
+ \geq\frac{X-\lambda}{2}+\frac{\eta_k}{2\lambda}X
+ \geq\left(\frac12+\frac{\eta_k}{4\lambda}\right)X
+\]
+elements, the last step holding for \(X\) large enough that
+\(\frac{\eta_k}{4\lambda}X\geq\frac\lambda2\). So
+\(\varepsilon_k=\eta_k/(4\lambda)=\rhoL/(64\lambda)\) works.
+\end{proof}
+
+\section{Even multipliers: what is true and what obstructs}\label{sec:even}
+
+For even \(k\) the only conclusion we obtain is Theorem~\ref{thm:all-k}. This
+section explains why, and records the structural facts that any future
+attempt will have to confront.
+
+\subsection{No dense starting layer}
+
+The two-layer construction of Section~\ref{sec:assembly} needs a set of density
+\(1/2-o(1)\) that is \(k\)-admissible \emph{before} any deletion, because the
+whole gain \(\eta_k\) is of size \(\rhoL\), far smaller than any loss
+proportional to the ambient density. For odd \(k\) the odd numbers supply
+that layer. By Theorem~\ref{thm:benchmark} no periodic set supplies it when \(k\) is
+even, and by Proposition~\ref{prop:dilation} passing to a dilated layer \(\lambda A\)
+replaces \(k\) by \(k\lambda\), which is again even. There is therefore no
+scale at which a periodic layer becomes available.
+
+\subsection{Roughness caps the source}
+
+The output of Section~\ref{sec:source} has density \(\asymp\rhoL\), and this
+is not an artefact of the write-up. What \eqref{eq:source-raw} bounds is the
+bad \emph{proportion} \(T/\abs{S}\), and it bounds it by
+\(\ll4^K(\log L)^{-3/2}\); any negative power of \(\log L\) would do, and the
+exponent \(-3/2\) has no significance for closing the argument. What matters
+is that the estimate is useful only when \(\log L\) is large, since \(4^K\)
+must first be absorbed and \(K\geq K_0\) is forced by
+Lemma~\ref{lem:source-density}. So \(L\) must be taken large --- and the
+source \(S\) itself has density \(\frac{1-\delta}{2}\rhoL\), which tends to
+\(0\) with \(L\). The method buys a small bad proportion by paying a small
+absolute density, and the two cannot be decoupled: at bounded \(L\) the
+estimate is vacuous. This is why the method delivers positive density and
+nothing approaching \(1/2\).
+
+\subsection{The two-adic splitting}
+
+Corollary~\ref{cor:twoadic} does give genuine structure for even \(k\). For \(k=2\)
+the conflict graph on the odd numbers is the disjoint union of its
+restrictions to the classes \(1\) and \(3\) modulo \(4\). This reduces the
+problem to a single class of density \(1/4\), but does not solve it: both
+classes contain conflicts, the first being \((5,45)\) and \((3,15)\)
+respectively, and inside a class the criterion of Lemma~\ref{lem:criterion}
+becomes \(\frac{u+v}{2}\mid g\), structurally the same divisibility problem
+one started with.
+
+\subsection{A heuristic, not a theorem}
+
+Take \(k=2\). For coprime odd \(u,v\) with \(u\equiv v\bmod4\), write
+\(y=(u+v)/2\), which is odd by Corollary~\ref{cor:twoadic}. By
+Lemma~\ref{lem:criterion} the pair
+\[
+ a=tyu,\qquad b=tyv\qquad(t\text{ odd})
+\]
+is a \(2\)-conflict, and \(\Om(a)\leq\Om(b)\) exactly when
+\(\Om(u)\leq\Om(v)\); in that case the orientation deletes \(b\). Taking
+\(u=1\) already shows that every odd multiple of \(v(v+1)/2\) with
+\(v\equiv1\bmod4\) is deleted, and summing the densities
+\(\asymp1/(v(u+v))\) of all these families over the pairs with
+\(\Om(u)\leq\Om(v)\) gives a divergent total, since for a typical \(v\) the
+inner sum \(\sum_u u^{-1}\1_{\Om(u)\leq\Om(v)}\) is unbounded. This suggests
+that almost every odd number is the \(\Om\)-heavy endpoint of some
+\(2\)-conflict, so that Sawin's orientation cannot retain density
+\(1/2-o(1)\) from the odd numbers. We emphasise that this is a
+heuristic about the \emph{method}: a divergent first moment is not a proof
+that the orientation deletes almost everything, and it says nothing at all
+about \(f_2\) itself, since a graph with minimum degree at least one may
+still have an independent set of density \(1-o(1)\). We have not proved
+either statement.
+
+\subsection{The largest-prime-factor fibration}
+
+The thread contains an observation of StijnC: the set of \(n\leq N\) with
+\(\Pplus(n)\geq\sqrt{kN}\) has density \(\log2\approx0.693\) and, when the
+largest prime factors differ, contains no conflict. The argument as posted
+leaves the equal-prime case open. It can be completed, and the completed
+statement explains why the observation cannot be used to beat \(1/2\).
+
+\begin{proposition}[fibration]\label{prop:fibration}
+Let \(k\geq1\), \(N\geq1\) and \(P_0>\sqrt{\max(k,2)N}\). For each prime
+\(p\in(P_0,N]\) let \(A_p\subseteq\{1,\ldots,\floor{N/p}\}\) be
+\(k\)-admissible. Then \(\bigcup_{P_0<p\leq N}pA_p\) is a \(k\)-admissible
+subset of \(\{1,\ldots,N\}\) of size \(\sum_p\abs{A_p}\). Consequently
+\[
+ f_k(N)\geq\sum_{P_0<p\leq N}f_k\!\left(\floor{N/p}\right).
+\]
+\end{proposition}
+
+\begin{proof}
+No \(n\leq N\) is divisible by two primes exceeding \(P_0>\sqrt N\), so the
+union is disjoint and each element determines its fibre.
+
+Let \(a=pm_1\) and \(b=qm_2\) with \(p\ne q\). Then \(p\nmid b\) and
+\(q\nmid a\), since otherwise \(pq\mid b\leq N<pq\). Suppose
+\(kab=(a+b)h\). As \(p\mid a\) and \(p\nmid b\) we have \(p\nmid a+b\), so
+\(v_p(h)=v_p(kab)\geq1\); likewise \(v_q(h)\geq1\); hence \(pq\mid h\) and
+\[
+ kab=(a+b)h\geq pq(a+b)>\max(k,2)N(a+b)\geq kN(a+b)>kab,
+\]
+using \(N\geq a\) and \(a+b>b\). This contradiction rules out conflicts
+across distinct fibres.
+
+Let \(a=pm_1\) and \(b=pm_2\) with \(m_1\ne m_2\). Put \(g'=(m_1,m_2)\) and
+\(x'=(m_1+m_2)/g'\). By Lemma~\ref{lem:criterion} applied to the pair \((a,b)\),
+whose gcd is \(pg'\) and whose reduced sum is \(x'\), the conflict is
+equivalent to \(x'/(x',k)\mid pg'\). Now
+\(x'\leq m_1+m_2\leq 2N/p<p\) because \(p>P_0>\sqrt{2N}\), so \(p\nmid x'\)
+and the condition reduces to \(x'/(x',k)\mid g'\), i.e.\ to
+\(m_1+m_2\mid km_1m_2\). Hence a conflict inside a fibre is exactly a
+conflict in \(A_p\).
+\end{proof}
+
+\begin{remark}
+Since \(\sum_{P_0<p\leq N}1/p=\log\frac{\log N}{\log P_0}+o(1)\to\log2\) for
+\(P_0\asymp\sqrt N\), feeding sets of density \(\theta\) into
+Proposition~\ref{prop:fibration} returns a set of density \(\theta\log2<\theta\). The
+fibration transfers density downwards and can never bootstrap it; in
+particular it gives no new lower bound for any \(k\).
+\end{remark}
+
+\section{Flagged items}\label{sec:gaps}
+
+We list every point at which this manuscript relies on something it does not
+prove, or at which we have altered the source presentation.
+
+\begin{enumerate}
+\item \textbf{Dependence on the companion manuscript.} Theorem~\ref{thm:odd-main}
+      depends on \cite{DellaPietra2026}, which is an unrefereed proof claim.
+      If its Theorem 1.1 is wrong, Theorem~\ref{thm:odd-main} is wrong for every
+      odd \(k\), including \(k=1\). Theorem~\ref{thm:all-k} depends only on
+      Section~\ref{sec:source}, whose method is Sawin's published one; and
+      Theorem~\ref{thm:benchmark}, Lemma~\ref{lem:criterion}, Corollary~\ref{cor:twoadic},
+      Proposition~\ref{prop:dilation} and Proposition~\ref{prop:fibration} are independent of both
+      and are proved here in full.
+\item \textbf{The two analytic inputs.} Proposition~\ref{prop:one-variable} and
+      Proposition~\ref{prop:dBT} are quoted, not proved. In particular the uniformity of
+      the implied constant in \eqref{eq:dBT-shape} over the multiplicative
+      class, which is what allows \(F\) to depend on the cutoff \(L\), is the
+      form in which \cite{DellaPietra2026} uses
+      \cite[Thm.~3.1]{BretecheTenenbaum2026}; we use it identically and have
+      not independently re-derived it.
+\item \textbf{Ineffectivity.} Both quoted inputs carry unspecified absolute
+      constants, so \(\varepsilon_k\) and \(c_k\) are not effective as
+      stated. Even granting effective inputs, the cutoff \(L\) must satisfy
+      \((\log L)^{1-c\log q_o}\) larger than a fixed multiple of the
+      \(k\)-dependent constant \(C_k\) of \eqref{eq:mixed-indicator}, and
+      \(1-c\log q_o<3\cdot10^{-4}\); the resulting \(\varepsilon_k\) is
+      astronomically small. We make no claim about its size.
+\item \textbf{The \(\Om_{\geq L}(w)\) majorisation.} In the proof of
+      Proposition~\ref{prop:mixed-estimate} we use
+      \(\Om_L(w,x)\geq\Om_{\geq L}(w)-1\) where
+      \cite[Prop.~5.2]{DellaPietra2026} writes an equality. The inequality is
+      correct and costs one factor \(q_o\); the equality as written is not
+      justified for those \(w\) carrying a prime factor in \((x,2\delta^{-1}x]\).
+      The supplement verifies exhaustively that at most one such prime factor
+      can occur.
+\item \textbf{Second residual ranges.} The treatment of the second residual
+      term in Proposition~\ref{prop:source-estimate}(iv) and in
+      Proposition~\ref{prop:mixed-estimate} is by reference to the corresponding
+      passages of \cite{DellaPietra2026}, with the observation that the
+      multiplier only changes the relevant \(D\) and \(Y\) by bounded
+      factors. We have checked that no exponent changes, but we have not
+      rewritten those two dyadic splittings in full here.
+\item \textbf{The dilation.} An earlier draft of this manuscript used the
+      dilation \(2\) throughout, copying \cite{DellaPietra2026}. That is
+      \emph{false} for every odd \(k\) divisible by \(3\) or \(5\):
+      Remark~\ref{rem:lambda-two} exhibits the offending families, which in the
+      coordinates of Lemma~\ref{lem:mixed-coordinates} are exactly those with
+      \(u=1\), and which carry a positive proportion of the source. The error
+      was found by an adversarial audit of the draft. The fix is
+      \eqref{eq:lambda}, and it is the reason
+      Proposition~\ref{prop:mixed-estimate} now carries the hypothesis
+      \(L>\lambda(1+\delta^{-1})\) and the conclusion \eqref{eq:u-lower}. We
+      record this because the corresponding step in \cite{DellaPietra2026} ---
+      the assertion that every relevant dyadic block has \(X\gg L\) --- is
+      stated there without proof; it is true at \(k=1\), for the reason given
+      in the proof of \eqref{eq:u-lower}, but it is not automatic.
+\item \textbf{Triviality for odd \(k\).} Theorem~\ref{thm:all-k} has content
+      only for even \(k\); for odd \(k\) the odd numbers already give density
+      \(1/2\). We state it uniformly for convenience, not because the odd
+      case is a result.
+\item \textbf{Even \(k\).} We do not improve Sawin's constant at \(k=2\), we
+      do not answer the thread question \(f_2(N)\geq(1/2+o(1))N\), and we
+      give no explicit \(c_k\) for any \(k\geq2\).
+\item \textbf{The heuristic of Section~\ref{sec:even}.} Explicitly not a theorem, as
+      stated there.
+\item \textbf{No formalization.} A Lean 4 development for this manuscript is
+      planned and has not been written. The companion manuscript's
+      formalization covers \(k=1\) and \(k=2\) only and does not certify any
+      statement here.
+\end{enumerate}
+
+\section{Verification, prior work, and disclosure}\label{sec:repro}
+
+\subsection{The exact verifier}
+
+The supplement \path{paper/supplement/verify_certificate.py} is a standalone
+standard-library Python program using exact integer and rational arithmetic;
+no floating-point comparison is load-bearing. It certifies, in ten groups:
+the universal periodic witness \eqref{eq:witness} and the resulting benchmark
+densities of Theorem~\ref{thm:benchmark}; the conflict criterion of
+Lemma~\ref{lem:criterion}; the two-adic restriction of Corollary~\ref{cor:twoadic} and the
+mod-\(4\) splitting at \(k=2\); the generalised source coordinates of
+Lemma~\ref{lem:source-coords}, including \(u\geq L\), \(x>L\) and the exact
+\(L\)-smooth part; the mixed coordinates of Lemma~\ref{lem:mixed-coordinates} and
+their converse, the exclusion \eqref{eq:u-lower} of the \(u=1\) families for
+the repaired dilation together with a negative control exhibiting those
+families for the dilation \(2\), and the at-most-one-large-prime fact used in
+flagged item 4; the root counts \(3p-2\) for both linear-form triples and the
+\(p=2\) factor; the complete small- and large-prime Euler factors for both
+triples, including the modified factors at primes dividing the multiplier;
+the five window inequalities of Lemma~\ref{lem:window} with rational logarithm
+intervals of width below \(10^{-80}\), together with the symbolic
+cancellation of the \(\log L\) exponents to \(-3/2\) in the source assembly
+and \(-2\) in the mixed assembly, carried out as an identity in the formal
+symbols \(M,\alpha,\beta,s\); and Proposition~\ref{prop:fibration} with its contraction
+constant; and, finally, that the assembled two-layer set of
+Theorem~\ref{thm:even-form} really is \(k\)-admissible in a finite box. The
+recorded output is \path{paper/supplement/certificate-output.txt}.
+
+The last group deserves a caveat. It confirms the combinatorics of the
+assembly --- that the three conflict types really are all excluded --- but it
+cannot establish the density gain, which is asymptotic and requires \(L\) and
+\(N\) to be chosen in the legal order of Theorem~\ref{thm:even-form}. The
+boxes reported there do happen to show a positive surplus over the odd
+numbers, but that is a property of those particular boxes and proves nothing:
+no finite computation can test the inequality of
+Theorem~\ref{thm:odd-main}. What the group does test, and what it was added
+to test, is that the assembled set is genuinely \(k\)-admissible --- the
+property that the dilation \(2\) silently violates for \(3\mid k\) and
+\(5\mid k\).
+
+These checks certify arithmetic, local densities and the numerical window.
+They are not, and are not offered as, evidence for the analytic inputs of
+Section~\ref{sec:inputs}.
+
+\subsection{Prior-work search}
+
+A search completed on 29 July 2026 covering arXiv, the Problem 327 page and
+its discussion thread, and general web search found: Sawin's paper
+\cite{Sawin2026}, which treats \(k=2\) only; the upper bounds of
+\cite{Leon2026} for \(k=1,2,3\); Sawin's thread comment giving the greedy
+lower bound \(N/(\log N)^{0.3588\ldots+o(1)}\) for \(k=2\); and no lower
+bound for \(f_k\) with \(k\geq3\) other than the odd numbers for odd \(k\),
+and in particular none at all for even \(k\geq4\). We located no prior
+treatment of the periodic benchmark of Theorem~\ref{thm:benchmark}. This is a dated search
+report, not a categorical priority claim.
+
+\subsection{Computational and AI-use disclosure}
+
+AI systems were used for literature search, symbolic and numerical
+exploration, adversarial auditing of the generalisation, independent
+reconstruction of intermediate estimates, and drafting. The identification
+of the periodic benchmark, the choice of what does and does not transfer from
+\cite{DellaPietra2026}, and the decision to report Theorem~\ref{thm:odd-main} and
+Theorem~\ref{thm:all-k} rather than a stronger claim are the author's. The author is
+responsible for all claims and errors.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
