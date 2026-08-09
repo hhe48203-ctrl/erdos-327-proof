@@ -658,27 +658,19 @@ At the common scale \(x\),
 \]
 \begin{equation}\label{eq:a-anatomy}
  \Om_L(a,x)=\Om_L(t,x)+\Om_L(w,x)+\Om(x)
- \geq\Om_L(t,x)+\Om_{\geq L}(w)+\Om(x)-1 .
+ =\Om_L(t,x)+\Om_{\geq L}(w)+\Om(x).
 \end{equation}
-The inequality in \eqref{eq:a-anatomy} is where a prime factor of \(w\)
-exceeding \(x\) is discarded, and one such factor is all that can occur: by
-\eqref{eq:block-lower} we have \(x\geq L>2\delta^{-1}\), while
-\(w\leq2\delta^{-1}u<2\delta^{-1}x\), so two prime factors above \(x\) would
-force \(w>x^2>2\delta^{-1}x\). Exponentiating both regularity bounds
-therefore majorizes the joint indicator by
+The second equality follows from \(x=2u+w>w\), since every prime factor of
+\(w\) is then below \(x\). Exponentiating both regularity bounds therefore
+majorizes the joint indicator by
 \begin{equation}\label{eq:mixed-indicator}
- q_o\,q_b^{K_b}q_o^{K_o}
+ q_b^{K_b}q_o^{K_o}
  \left(\frac{\log x}{\log L}\right)^M
  \alpha^{\Om(u)}
  \beta^{\Om_{\geq L}(w)}
  s^{\Om(x)}
  s^{\Om_L(t,x)}.
 \end{equation}
-The single extra factor \(q_o\) is an absolute constant: it does not depend on
-\(L\), \(N\), \(K_b\) or \(K_o\), it is absorbed by the implied constant of
-\eqref{eq:mixed-final}, and it changes no exponent. In particular the
-parameter window of \cref{sec:parameters} and the certified margins of
-\cref{tab:margins} are untouched.
 
 For \(Y=N/(ux)\), \cref{prop:one-variable} applied to
 \[
@@ -1051,11 +1043,12 @@ Bret\`eche and Tenenbaum. A separate search located no prior public Lean
 formalization of Problem~327 or Sawin's result; existing public developments
 provide only more general prerequisites or incomplete nearby statements.
 
-\section*{Errata relative to version 1}
+\section*{Corrections relative to released versions}
 
-Two steps in the first released version of this manuscript were stated
-without adequate justification. Both are corrected above, and neither changes
-any theorem, exponent, or certified margin.
+The first released version of this manuscript stated one step without
+adequate justification. A later revision also unnecessarily weakened an exact
+identity. Both are corrected above, and neither correction changes any
+theorem, exponent, or certified margin.
 
 \begin{enumerate}
 \item The assertion that every relevant dyadic block satisfies
@@ -1069,17 +1062,19 @@ any theorem, exponent, or certified margin.
       corresponding claim is false for a general odd multiplier, and the
       companion manuscript on the multipliers \(k\geq2\) has to change the
       dilation to repair it.
-\item The identity \(\Om_L(a,x)=\Om_L(t,x)+\Om_{\geq L}(w)+\Om(x)\) is only an
-      inequality \(\geq\cdots-1\), since \(w\) may carry one prime factor
-      exceeding \(x\). This is now \eqref{eq:a-anatomy}. The cost is the
-      single absolute factor \(q_o\) in \eqref{eq:mixed-indicator}, absorbed
-      by the implied constant; no exponent and no entry of
-      \cref{tab:margins} changes.
+\item A later revision replaced the exact identity
+      \(\Om_L(a,x)=\Om_L(t,x)+\Om_{\geq L}(w)+\Om(x)\) by the weaker
+      inequality \(\geq\cdots-1\). This weakening is unnecessary: because
+      \(x=2u+w>w\), every prime factor of \(w\) is below \(x\), and
+      \(\Om_L(w,x)=\Om_{\geq L}(w)\). Thus \eqref{eq:a-anatomy} is exact
+      and the extra factor \(q_o\) previously placed in
+      \eqref{eq:mixed-indicator} is not needed. Restoring the identity only
+      improves the implied constant; no exponent or certified margin changes.
 \end{enumerate}
 
-The Lean development is unaffected: it proves the analytic estimates in the
-special cases it needs rather than transcribing these two lines, and it was
-not rebuilt for this revision.
+The Lean development is unaffected: its theorem
+\path{mixed_odd_factorCount_eq} already proves the exact localized identity
+used here.
 
 \section*{Computational and AI-use disclosure}
 

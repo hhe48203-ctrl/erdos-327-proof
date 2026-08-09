@@ -36,11 +36,13 @@ prime-factor anatomy at a fixed roughness cutoff with distinct centered
 budgets at both ends of every odd–even conflict. The manuscript also
 independently reproves Sawin's positive-density result for `a + b ∤ 2ab`.
 
-**Errata.** Version 1 stated two steps without adequate justification: the
-dyadic block lower bound `X ≫ L`, and an anatomy identity that is only an
-inequality. Both are corrected, and neither changes any theorem, exponent, or
-certified margin — see the "Errata relative to version 1" section of the
-manuscript. The Lean development is unaffected.
+**Corrections.** Version 1 stated the dyadic block lower bound `X ≫ L`
+without adequate justification; this is now proved. A later revision
+unnecessarily weakened an exact anatomy identity to an inequality. Since
+`x = 2u + w > w`, the identity is exact and has been restored. Neither
+correction changes any theorem, exponent, or certified margin — see the
+"Corrections relative to released versions" section of the manuscript. The
+Lean development is unaffected.
 
 ## 2. Companion manuscript — the multipliers k ≥ 2
 
@@ -137,9 +139,10 @@ formalization.
 
 AI systems provided substantial assistance with proof auditing, reference
 search, symbolic and numerical exploration, independent reconstruction of
-intermediate estimates, formalization, and exposition. An adversarial AI audit
-found the two errata in the main manuscript noted above, and found and forced
-the repair of a fatal error in a draft of the companion. The mathematical
-strategy, parameter choices, and the judgement of what to claim are the
-author's. Donald Della Pietra is responsible for the mathematical claims and
-their verification.
+intermediate estimates, formalization, and exposition. AI audits found the
+missing dyadic justification in the main manuscript, identified and corrected
+a later unnecessary weakening of the exact anatomy identity, and found and
+forced the repair of a fatal error in a draft of the companion. The
+mathematical strategy, parameter choices, and the judgement of what to claim
+are the author's. Donald Della Pietra is responsible for the mathematical
+claims and their verification.

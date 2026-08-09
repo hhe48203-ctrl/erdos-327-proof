@@ -104,15 +104,14 @@ def audit_coordinates(box: int = 240) -> None:
 
 
 def audit_block_lower_bound() -> None:
-    """Certify the two errata of the revised manuscript.
+    """Certify the dyadic lower bound and exact anatomy identity.
 
     (i) eq:block-lower -- every mixed conflict with an L-rough b in the
         endpoint ranges has u >= L, so every dyadic block starts at L.
         The exclusion of u=1 uses k=1 essentially.
-    (ii) eq:a-anatomy -- w carries at most one prime factor above x, so the
-        Omega_{>=L}(w) majorisation costs exactly one factor q_o.
+    (ii) eq:a-anatomy -- x=2u+w>w, so no prime factor of w exceeds x.
     """
-    print("1b. dyadic block lower bound and the Omega_{>=L}(w) majorisation")
+    print("1b. dyadic block lower bound and exact Omega_{>=L}(w) identity")
 
     # (i)  delta = 1/2, so the hypothesis is L > 2 + 2/delta = 6.
     bad = None
@@ -153,37 +152,10 @@ def audit_block_lower_bound() -> None:
           f"smallest witness (a,b)={min(outside, key=lambda t: t[1])}"
           if outside else "none found")
 
-    # (ii)  w <= (2/delta) u < 4x, so two prime factors above x would need
-    #       w > x^2 > 4x once x >= 4.
-    limit = 4 * 200
-    spf = list(range(limit + 1))
-    for i in range(2, int(limit ** 0.5) + 1):
-        if spf[i] == i:
-            for j in range(i * i, limit + 1, i):
-                if spf[j] == j:
-                    spf[j] = i
-    bad = None
-    for x in range(5, 201):
-        for w in range(1, 4 * x + 1):
-            m, big = w, 0
-            while m > 1:
-                if spf[m] > x:
-                    big += 1
-                m //= spf[m]
-            if big > 1:
-                bad = (x, w, big)
-                break
-        if bad:
-            break
-    check("for w <= 4x and x >= 5, w has at most one prime factor above x, "
-          "so the majorisation costs exactly one factor q_o", bad is None,
-          "" if bad is None else str(bad))
-
-    # The extra q_o is an absolute constant: it multiplies no exponent.
-    qo = Fraction(16_786, 12_500)
-    check("the extra factor q_o is a fixed rational independent of L, N, "
-          "K_b, K_o", qo > 1 and qo.denominator == 6250,
-          f"q_o = {decimal(qo)}")
+    # (ii) Every prime factor of w is at most w, while x=2u+w>w.
+    exact = all(w < 2 * u + w for u in range(1, 201) for w in range(1, 801))
+    check("x=2u+w is greater than w, so no prime factor of w exceeds x",
+          exact, "1<=u<=200, 1<=w<=800")
 
 
 def audit_local_roots() -> None:
