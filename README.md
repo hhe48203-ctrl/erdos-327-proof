@@ -90,6 +90,38 @@ revisions are pinned in `lean/lean-toolchain` and `lean/lake-manifest.json`.
 There is **no** Lean development for the companion manuscript. Formalization
 of the companion is planned and has not been done.
 
+## Independent audit results in this fork
+
+This fork adds reproducible, audit-only results for the main Lean proof:
+
+- [`AUDIT_REPORT.md`](AUDIT_REPORT.md) records an independent audit with the
+  verdict **VERIFIED WITH CAVEATS**. It found no logical gap or nonstandard
+  axiom, but records dependency-review and manuscript-exposition caveats.
+- [`EFFECTIVE_EPSILON_REPORT.md`](EFFECTIVE_EPSILON_REPORT.md) fixes concrete
+  proof parameters and certifies the Level-1 explicit gain
+
+  ```text
+  J  = 2^(2 * 10^30)
+  L  = 8 * 2^J + 1
+  ε₀ = 1 / (839808 * (J + 4)) > 0.
+  ```
+
+  The ambient threshold `N₀` is still finite but existential.
+
+The audit artifacts can be checked with:
+
+```bash
+cd lean
+lake env lean ../audit/AxiomAudit.lean
+lake env lean ../audit/EffectiveEpsilon.lean
+cd ..
+python3 audit/finite_checks.py
+python3 audit/effective_epsilon.py
+```
+
+These additions are independent audit material, not part of the upstream
+manuscripts.
+
 ## Reproduction
 
 All commands are run from the repository root.

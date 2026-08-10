@@ -1,0 +1,66 @@
+Command:
+  cd lean
+  lake env lean ../audit/AxiomAudit.lean
+
+Erdos327.Analytic.erdos327Conclusion_unconditional : Erdos327.Erdos327Conclusion
+Erdos327.Analytic.erdos327SecondConclusion_unconditional : Erdos327.Erdos327SecondConclusion
+Erdos327.Analytic.erdos327FullConclusion_unconditional : Erdos327.Erdos327FullConclusion
+'Erdos327.Analytic.erdos327Conclusion_unconditional' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.Analytic.erdos327SecondConclusion_unconditional' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.Analytic.erdos327FullConclusion_unconditional' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Mertens.sum_prime_inv_sub_isBigO_nat' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Mertens.sum_prime_inv_sub_sub_bound_nat' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Mertens.prod_prime_one_minus_inv_eq_nat' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Mertens.E₃_bound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Mertens.prod_prime_one_minus_inv_asymp_nat' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.Analytic.mertensLowerConstant_div_log_le_primeProduct' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'Erdos327.Analytic.mertensLowerConstant_div_log_le_roughDensity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'Erdos327.Analytic.roughSourceInterval_card_lower' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.Analytic.factorWeight_partialSum_le_eulerProduct_uniform' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'Erdos327.Analytic.roughResidualSubinterval_le_mertens' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.Analytic.card_irregularRoughSource_le_explicit' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.Analytic.finiteWeightBoxSum_le_primeInvSum_add_truncated_boundary' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'Erdos327.Analytic.source_threeFormBoxSum_le_sharp' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.Analytic.mixed_threeFormBoxSum_le_sharp' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.Analytic.card_rankBad_le_sourceCoordinateSet' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.Analytic.card_mixedEdges_le_mixedMainCoordinateSet_add_one' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'Erdos327.Analytic.mixed_odd_factorCount_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.Analytic.card_rankBad_le_exactRefinedScheduled_sum' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.Analytic.card_mixedEdges_le_refinedScheduled_sum_add_one' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'Erdos327.Analytic.source_initialBlock_empty_or_analytic' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.Analytic.mixedCoordinateBoxBlock_eq_empty_of_sixteen_mul_lt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'Erdos327.Analytic.eventually_sum_sourceEulerMain_transition_le_roughDensity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'Erdos327.Analytic.eventually_sum_sourceEulerMain_smallResidual_le' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'Erdos327.Analytic.eventually_sum_mixedCanonicalBoundaryBlock_le_roughDensity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'Erdos327.Analytic.eventually_exists_forall_card_rankBad_le_roughDensity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'Erdos327.Analytic.eventually_exists_forall_sum_mixedRefined_add_one_le_roughDensity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'Erdos327.Analytic.exists_sourceTailBudget' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.Analytic.eventually_oddBudget_meets_tail' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.Analytic.tendsto_sourceCoupledCutoff_atTop' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.assembly_density_bound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.erdos327Conclusion_of_evenEndpoint' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos327.erdos327FullConclusion_of_canonical_estimates' depends on axioms: [propext, Classical.choice, Quot.sound]
