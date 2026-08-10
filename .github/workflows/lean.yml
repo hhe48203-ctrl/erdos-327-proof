@@ -21,3 +21,6 @@ jobs:
           build: true
           test: false
           lint: false
+      - name: Check explicit epsilon certificate
+        working-directory: lean
+        run: lake env lean ../audit/EffectiveEpsilon.lean
