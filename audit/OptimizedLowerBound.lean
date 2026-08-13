@@ -1,14 +1,16 @@
-import Erdos327
+import Erdos327.Tuned
+
+set_option maxRecDepth 100000
 
 /-!
 Audit-only effectivization lemmas for the proof of Erdős Problem 327.
 
 Run from `lean/` with:
 
-    lake env lean ../audit/EffectiveEpsilon.lean
+    lake env lean ../audit/OptimizedLowerBound.lean
 -/
 
-namespace Erdos327.EffectiveAudit
+namespace Erdos327.Tuned.Analytic.OptimizedAudit
 
 open Filter Finset Real Topology
 
@@ -18,28 +20,26 @@ open scoped BigOperators
 
 noncomputable section
 
-namespace Analytic
-
 /-- A deliberately generous explicit source-tail intercept. -/
-def explicitSourceBudget : ℝ := 400000000
+def explicitSourceBudget : ℝ := 440000
 
 /-!
 ## One explicit common dyadic start
 
-The exponent is deliberately divisible by `20000`.  This keeps every
-later `1 / 10000` power comparison exact while leaving a very large
-margin for the fixed constants in the source and mixed estimates.
+The master exponent is deliberately divisible by `100000`.  This keeps
+every later rational-power comparison exact while retaining the fixed
+constant margins in the source and mixed estimates.
 -/
 
-def explicitScale : ℕ := 10 ^ 26
+def explicitScale : ℕ := 881019
 
-def explicitQuarterExponent : ℕ := 5000 * explicitScale
+def explicitQuarterExponent : ℕ := 2500 * (explicitScale + 1)
 
 def explicitLogExponent : ℕ := 4 * explicitQuarterExponent
 
 def explicitJ : ℕ := 2 ^ explicitLogExponent
 
-def explicitTinyRootExponent : ℕ := 2 * 10 ^ 25
+def explicitTinyRootExponent : ℕ := 88102
 
 private theorem explicitLogExponent_eq_tinyRoot :
     explicitLogExponent = 100000 * explicitTinyRootExponent := by
@@ -209,56 +209,29 @@ private theorem explicitJ_tiny_rpow_eq :
 
 private theorem explicitJ_medium_rpow_eq :
     (explicitJ : ℝ) ^ (1 / 10000 : ℝ) =
-      (2 : ℝ) ^ (2 * explicitScale) := by
+      (2 : ℝ) ^ (explicitScale + 1) := by
   have hJpos : (0 : ℝ) < explicitJ := by
     exact_mod_cast (show 0 < explicitJ by unfold explicitJ; positivity)
   have hrelation :
       (explicitLogExponent : ℝ) =
-        10000 * ((2 * explicitScale : ℕ) : ℝ) := by
+        10000 * ((explicitScale + 1 : ℕ) : ℝ) := by
     norm_num [explicitLogExponent, explicitQuarterExponent, explicitScale]
   have hexponent :
       (explicitLogExponent : ℝ) * log 2 * (1 / 10000 : ℝ) =
-        ((2 * explicitScale : ℕ) : ℝ) * log 2 := by
+        ((explicitScale + 1 : ℕ) : ℝ) * log 2 := by
     calc
       (explicitLogExponent : ℝ) * log 2 * (1 / 10000 : ℝ) =
           ((explicitLogExponent : ℝ) / 10000) * log 2 := by ring
-      _ = ((2 * explicitScale : ℕ) : ℝ) * log 2 := by
+      _ = ((explicitScale + 1 : ℕ) : ℝ) * log 2 := by
         congr 1
         apply (div_eq_iff (by norm_num : (10000 : ℝ) ≠ 0)).2
         nlinarith only [hrelation]
   rw [Real.rpow_def_of_pos hJpos, log_explicitJ_eq, hexponent]
   calc
-    exp (((2 * explicitScale : ℕ) : ℝ) * log 2) =
-        exp (log 2) ^ (2 * explicitScale) := by
-      simpa using (Real.exp_nat_mul (log 2) (2 * explicitScale))
-    _ = (2 : ℝ) ^ (2 * explicitScale) := by
-      rw [Real.exp_log (by norm_num)]
-
-private theorem explicitJ_small_rpow_eq :
-    (explicitJ : ℝ) ^ (1 / 20000 : ℝ) =
-      (2 : ℝ) ^ explicitScale := by
-  have hJpos : (0 : ℝ) < explicitJ := by
-    exact_mod_cast (show 0 < explicitJ by unfold explicitJ; positivity)
-  have hrelation :
-      (explicitLogExponent : ℝ) =
-        20000 * (explicitScale : ℝ) := by
-    norm_num [explicitLogExponent, explicitQuarterExponent, explicitScale]
-  have hexponent :
-      (explicitLogExponent : ℝ) * log 2 * (1 / 20000 : ℝ) =
-        (explicitScale : ℝ) * log 2 := by
-    calc
-      (explicitLogExponent : ℝ) * log 2 * (1 / 20000 : ℝ) =
-          ((explicitLogExponent : ℝ) / 20000) * log 2 := by ring
-      _ = (explicitScale : ℝ) * log 2 := by
-        congr 1
-        apply (div_eq_iff (by norm_num : (20000 : ℝ) ≠ 0)).2
-        nlinarith only [hrelation]
-  rw [Real.rpow_def_of_pos hJpos, log_explicitJ_eq, hexponent]
-  calc
-    exp ((explicitScale : ℝ) * log 2) =
-        exp (log 2) ^ explicitScale := by
-      simpa using (Real.exp_nat_mul (log 2) explicitScale)
-    _ = (2 : ℝ) ^ explicitScale := by
+    exp (((explicitScale + 1 : ℕ) : ℝ) * log 2) =
+        exp (log 2) ^ (explicitScale + 1) := by
+      simpa using (Real.exp_nat_mul (log 2) (explicitScale + 1))
+    _ = (2 : ℝ) ^ (explicitScale + 1) := by
       rw [Real.exp_log (by norm_num)]
 
 private theorem explicitJ_ge_exp_tiny_inverse :
@@ -280,13 +253,11 @@ private theorem explicitJ_ge_exp_tiny_inverse :
       _ = (explicitJ : ℝ) := Real.exp_log hJpos
   convert hexp using 1 <;> norm_num
 
-/-- A single explicit logarithmic absorption strong enough for every
-power at most ten used by the source and mixed schedules. -/
-theorem explicit_log_rpow_le_tiny_of_succ
+private theorem explicit_log_rpow_le_scaled_of_succ
     {j : ℕ} (hj : explicitJ ≤ j + 1) {m : ℝ}
-    (hm0 : 0 ≤ m) (hm10 : m ≤ 10) :
+    (hm0 : 0 ≤ m) :
     log (((j + 1 : ℕ) : ℝ)) ^ m ≤
-      (((j + 1 : ℕ) : ℝ) ^ (1 / 10000 : ℝ)) := by
+      (((j + 1 : ℕ) : ℝ) ^ (m / 100000 : ℝ)) := by
   let x : ℝ := (j + 1 : ℕ)
   have hxJ : (explicitJ : ℝ) ≤ x := by
     dsimp [x]
@@ -325,12 +296,33 @@ theorem explicit_log_rpow_le_tiny_of_succ
       Real.rpow_le_rpow (zero_le_one.trans hlogOne) hlogBase hm0
     _ = x ^ ((1 / 100000 : ℝ) * m) :=
       (Real.rpow_mul hxpos.le _ _).symm
-    _ ≤ x ^ (1 / 10000 : ℝ) :=
+    _ = x ^ (m / 100000 : ℝ) := by
+      congr 1
+      ring
+
+/-- A single explicit logarithmic absorption strong enough for every
+power at most ten used by the source and mixed schedules. -/
+theorem explicit_log_rpow_le_tiny_of_succ
+    {j : ℕ} (hj : explicitJ ≤ j + 1) {m : ℝ}
+    (hm0 : 0 ≤ m) (hm10 : m ≤ 10) :
+    log (((j + 1 : ℕ) : ℝ)) ^ m ≤
+      (((j + 1 : ℕ) : ℝ) ^ (1 / 10000 : ℝ)) := by
+  calc
+    log (((j + 1 : ℕ) : ℝ)) ^ m ≤
+        (((j + 1 : ℕ) : ℝ) ^ (m / 100000 : ℝ)) :=
+      explicit_log_rpow_le_scaled_of_succ hj hm0
+    _ ≤ (((j + 1 : ℕ) : ℝ) ^ (1 / 10000 : ℝ)) :=
       Real.rpow_le_rpow_of_exponent_le
         (by
-          dsimp [x]
           exact_mod_cast Nat.succ_le_succ (Nat.zero_le j))
         (by nlinarith only [hm10])
+
+private theorem explicit_log_four_rpow_le_tiny_of_succ
+    {j : ℕ} (hj : explicitJ ≤ j + 1) :
+    log (((j + 1 : ℕ) : ℝ)) ^ (4 : ℝ) ≤
+      (((j + 1 : ℕ) : ℝ) ^ (1 / 25000 : ℝ)) := by
+  simpa only [show (4 / 100000 : ℝ) = 1 / 25000 by norm_num] using
+    (explicit_log_rpow_le_scaled_of_succ hj (m := (4 : ℝ)) (by norm_num))
 
 theorem explicit_log_rpow_le_tiny
     {j : ℕ} (hj : explicitJ ≤ j) {m : ℝ}
@@ -856,18 +848,47 @@ def explicitL : ℕ := sourceCoupledCutoff explicitJ
 
 /-- An exact rational real number below the final gain
 `roughDensity explicitL / 128`. -/
-def explicitEpsilon : ℝ :=
+def epsilonAt (J : ℕ) : ℝ :=
   (1 / 128 : ℝ) * (1 / 6561 : ℝ) *
-    (1 / ((explicitJ + 4 : ℕ) : ℝ))
+    (1 / ((J + 4 : ℕ) : ℝ))
 
-theorem explicitEpsilon_pos : 0 < explicitEpsilon := by
-  unfold explicitEpsilon
+def optimizedEpsilon : ℝ := epsilonAt explicitJ
+
+theorem optimizedEpsilon_pos : 0 < optimizedEpsilon := by
+  unfold optimizedEpsilon epsilonAt
   positivity
+
+/-- The exact rational gain from the preserved Level-1 baseline. -/
+def baselineEpsilon : ℝ :=
+  epsilonAt (2 ^ (2 * 10 ^ 30))
+
+private theorem epsilonAt_strictAnti {J₁ J₂ : ℕ} (hJ : J₁ < J₂) :
+    epsilonAt J₂ < epsilonAt J₁ := by
+  have hden : (((J₁ + 4 : ℕ) : ℝ)) < (((J₂ + 4 : ℕ) : ℝ)) :=
+    Nat.cast_lt.2 (Nat.add_lt_add_right hJ 4)
+  have hinv :
+      1 / (((J₂ + 4 : ℕ) : ℝ)) < 1 / (((J₁ + 4 : ℕ) : ℝ)) :=
+    one_div_lt_one_div_of_lt
+      (Nat.cast_pos.2 (show 0 < J₁ + 4 by omega)) hden
+  unfold epsilonAt
+  exact mul_lt_mul_of_pos_left hinv (by norm_num)
+
+/-- The compressed cutoff gives a strict exact improvement over the
+preserved Level-1 certificate. -/
+theorem baseline_lt_optimizedEpsilon :
+    baselineEpsilon < optimizedEpsilon := by
+  have hexponent :
+      explicitLogExponent < (2 * 10 ^ 30 : ℕ) := by
+    norm_num [explicitLogExponent, explicitQuarterExponent, explicitScale]
+  have hJ : explicitJ < 2 ^ (2 * 10 ^ 30 : ℕ) := by
+    unfold explicitJ
+    exact Nat.pow_lt_pow_right (by norm_num) hexponent
+  exact epsilonAt_strictAnti hJ
 
 /-- This is the exact quantitative endpoint of the Mertens comparison;
 no eventual threshold is used. -/
-theorem explicitEpsilon_le_final_gain :
-    explicitEpsilon ≤ roughDensity explicitL / 128 := by
+theorem optimizedEpsilon_le_final_gain :
+    optimizedEpsilon ≤ roughDensity explicitL / 128 := by
   have hL : 3 ≤ explicitL := by
     exact three_le_sourceCoupledCutoff explicitJ
   have hlog : 0 < log (explicitL : ℝ) :=
@@ -886,10 +907,10 @@ theorem explicitEpsilon_le_final_gain :
     one_div_le_one_div_of_le hlog hlogUpper
   have hmertens := mertensLowerConstant_div_log_le_roughDensity hL
   calc
-    explicitEpsilon =
+    optimizedEpsilon =
         ((1 / 6561 : ℝ) *
           (1 / (((explicitJ + 4 : ℕ) : ℝ)))) / 128 := by
-      unfold explicitEpsilon
+      unfold optimizedEpsilon epsilonAt
       ring
     _ ≤ ((1 / 6561 : ℝ) *
           (1 / log (explicitL : ℝ))) / 128 := by
@@ -904,10 +925,10 @@ theorem explicitEpsilon_le_final_gain :
 
 private theorem sourceBudgetConstant_explicit_eq :
     sourceBudgetConstant explicitSourceBudget =
-      (2 : ℝ) ^ (800000004 : ℕ) := by
+      (2 : ℝ) ^ (880004 : ℕ) := by
   have hexponent :
       log (4 : ℝ) * (explicitSourceBudget + 2) =
-        log ((4 : ℝ) ^ (400000002 : ℕ)) := by
+        log ((4 : ℝ) ^ (440002 : ℕ)) := by
     rw [Real.log_pow]
     norm_num [explicitSourceBudget]
     ring
@@ -918,18 +939,18 @@ private theorem sourceBudgetConstant_explicit_eq :
 private theorem sourceErrorTailConstant_explicit_le :
     sourceErrorTailConstant explicitSourceBudget ≤
       (2 : ℝ) ^ explicitScale := by
-  have hexponent : (800000004 : ℕ) + 8 ≤ explicitScale := by
+  have hexponent : (880004 : ℕ) + 8 ≤ explicitScale := by
     norm_num [explicitScale]
   unfold sourceErrorTailConstant powerTailConstant
   norm_num only
   rw [sourceBudgetConstant_explicit_eq]
   calc
-    162 * (2 : ℝ) ^ (800000004 : ℕ) * (1 / 5 : ℝ) ≤
-        256 * (2 : ℝ) ^ (800000004 : ℕ) := by
-      rw [show 162 * (2 : ℝ) ^ (800000004 : ℕ) * (1 / 5 : ℝ) =
-          (162 / 5 : ℝ) * (2 : ℝ) ^ (800000004 : ℕ) by ring]
+    162 * (2 : ℝ) ^ (880004 : ℕ) * (1 / 5 : ℝ) ≤
+        256 * (2 : ℝ) ^ (880004 : ℕ) := by
+      rw [show 162 * (2 : ℝ) ^ (880004 : ℕ) * (1 / 5 : ℝ) =
+          (162 / 5 : ℝ) * (2 : ℝ) ^ (880004 : ℕ) by ring]
       exact mul_le_mul_of_nonneg_right (by norm_num) (by positivity)
-    _ = (2 : ℝ) ^ ((800000004 : ℕ) + 8) := by
+    _ = (2 : ℝ) ^ ((880004 : ℕ) + 8) := by
       rw [show (256 : ℝ) = 2 ^ (8 : ℕ) by norm_num, ← pow_add]
     _ ≤ (2 : ℝ) ^ explicitScale :=
       pow_le_pow_right₀ (by norm_num : (1 : ℝ) ≤ 2) hexponent
@@ -1333,7 +1354,7 @@ private theorem cutoffTailReserve_le_fifteen :
 
 private theorem roughCenteredMomentConstant_source_le :
     Erdos327.Analytic.roughCenteredMomentConstant
-        Erdos327.Analytic.sourceTailBase ≤ (3 : ℝ) ^ (100 : ℕ) := by
+        Erdos327.Tuned.Analytic.sourceTailBase ≤ (3 : ℝ) ^ (97 : ℕ) := by
   have hM : (0 : ℝ) < Erdos327.Analytic.mertensLowerConstant :=
     Erdos327.Analytic.mertensLowerConstant_pos
   have hMinv : Erdos327.Analytic.mertensLowerConstant⁻¹ ≤ (6561 : ℝ) := by
@@ -1352,17 +1373,17 @@ private theorem roughCenteredMomentConstant_source_le :
         · exact uniformWeightedMangoldtConstant_le_thousand
       _ ≤ (3 : ℝ) ^ (15 : ℕ) := by norm_num
   let E : ℝ :=
-    Erdos327.Analytic.sourceTailBase *
+    Erdos327.Tuned.Analytic.sourceTailBase *
         Erdos327.Analytic.cutoffTailReserve +
       2 * Erdos327.Analytic.reciprocalPrimeErrorReserve + 38
   have hE : E ≤ 82 := by
     dsimp [E]
-    have hz : Erdos327.Analytic.sourceTailBase ≤ (2 : ℝ) := by
-      norm_num [Erdos327.Analytic.sourceTailBase]
+    have hz : Erdos327.Tuned.Analytic.sourceTailBase ≤ (2 : ℝ) := by
+      norm_num [Erdos327.Tuned.Analytic.sourceTailBase]
     have hcut0 : 0 ≤ Erdos327.Analytic.cutoffTailReserve :=
       Erdos327.Analytic.cutoffTailReserve_nonneg
     have hmul :
-        Erdos327.Analytic.sourceTailBase *
+        Erdos327.Tuned.Analytic.sourceTailBase *
             Erdos327.Analytic.cutoffTailReserve ≤ 2 * 15 :=
       mul_le_mul hz cutoffTailReserve_le_fifteen hcut0 (by norm_num)
     linarith [hmul, reciprocalPrimeErrorReserve_le_seven]
@@ -1383,129 +1404,128 @@ private theorem roughCenteredMomentConstant_source_le :
         (3 : ℝ) ^ (15 : ℕ) * (3 : ℝ) ^ (82 : ℕ) := by
       gcongr
     _ = (3 : ℝ) ^ (97 : ℕ) := by rw [← pow_add]
-    _ ≤ (3 : ℝ) ^ (100 : ℕ) := by norm_num
 
 private theorem source_centeredTailRatio_gap :
-    (1 / 4000000000000 : ℝ) ≤
+    (1 / 22225557 : ℝ) ≤
       1 - Erdos327.Analytic.centeredTailRatio
-        Erdos327.Analytic.sourceAnatomySlope
-        Erdos327.Analytic.sourceTailBase := by
-  let x : ℝ := 1 / 1000000
+        Erdos327.Tuned.Analytic.sourceAnatomySlope
+        Erdos327.Tuned.Analytic.sourceTailBase := by
+  let x : ℝ := 3 / 10000
   let d : ℝ :=
-    Erdos327.Analytic.sourceAnatomySlope *
-        log Erdos327.Analytic.sourceTailBase -
-      (Erdos327.Analytic.sourceTailBase - 1)
+    Erdos327.Tuned.Analytic.sourceAnatomySlope *
+        log Erdos327.Tuned.Analytic.sourceTailBase -
+      (Erdos327.Tuned.Analytic.sourceTailBase - 1)
   have hx : 0 ≤ x := by norm_num [x]
   have hlog : 2 * x / (x + 2) ≤ log (1 + x) :=
     Real.le_log_one_add_of_nonneg hx
   have hdefs :
-      Erdos327.Analytic.sourceAnatomySlope = 1 + x ∧
-      Erdos327.Analytic.sourceTailBase = 1 + x := by
-    constructor <;> norm_num [Erdos327.Analytic.sourceAnatomySlope,
-      Erdos327.Analytic.sourceTailBase, x]
-  have hd : (1 / 3000000000000 : ℝ) ≤ d := by
+      Erdos327.Tuned.Analytic.sourceAnatomySlope = 1 + x ∧
+      Erdos327.Tuned.Analytic.sourceTailBase = 1 + x := by
+    constructor <;> norm_num [Erdos327.Tuned.Analytic.sourceAnatomySlope,
+      Erdos327.Tuned.Analytic.sourceTailBase, x]
+  have hd : (1 / 22225556 : ℝ) ≤ d := by
     rcases hdefs with ⟨hA, hz⟩
     dsimp [d]
     rw [hA, hz]
     have hx2 : 0 < x + 2 := by positivity
     have hmul := mul_le_mul_of_nonneg_left hlog (by positivity : 0 ≤ 1 + x)
     calc
-      (1 / 3000000000000 : ℝ) ≤
+      (1 / 22225556 : ℝ) ≤
           (1 + x) * (2 * x / (x + 2)) - x := by
         norm_num [x]
       _ ≤ (1 + x) * log (1 + x) - x :=
         sub_le_sub_right hmul x
       _ = (1 + x) * log (1 + x) - (1 + x - 1) := by ring
-  have hd0 : 0 < d := (by norm_num : (0 : ℝ) < 1 / 3000000000000).trans_le hd
+  have hd0 : 0 < d := (by norm_num : (0 : ℝ) < 1 / 22225556).trans_le hd
   have hexpLower : 1 + d ≤ exp d := by
     simpa [add_comm] using Real.add_one_le_exp d
   have hexpInv : exp (-d) ≤ 1 / (1 + d) := by
     rw [Real.exp_neg, one_div]
     exact (inv_le_inv₀ (by positivity : 0 < exp d) (by linarith : 0 < 1 + d)).2
       hexpLower
-  have hfrac : (1 / 4000000000000 : ℝ) ≤ d / (1 + d) := by
+  have hfrac : (1 / 22225557 : ℝ) ≤ d / (1 + d) := by
     rw [le_div_iff₀ (by linarith : 0 < 1 + d)]
     nlinarith [hd]
   have hratio :
       Erdos327.Analytic.centeredTailRatio
-          Erdos327.Analytic.sourceAnatomySlope
-          Erdos327.Analytic.sourceTailBase = exp (-d) := by
+          Erdos327.Tuned.Analytic.sourceAnatomySlope
+          Erdos327.Tuned.Analytic.sourceTailBase = exp (-d) := by
     unfold Erdos327.Analytic.centeredTailRatio
     dsimp [d]
     congr 1
     ring
   rw [hratio]
   calc
-    (1 / 4000000000000 : ℝ) ≤ d / (1 + d) := hfrac
+    (1 / 22225557 : ℝ) ≤ d / (1 + d) := hfrac
     _ = 1 - 1 / (1 + d) := by field_simp <;> ring
     _ ≤ 1 - exp (-d) := by linarith
 
 private theorem source_centeredTailRatio_inv_le :
-    (1 - Erdos327.Analytic.centeredTailRatio
-        Erdos327.Analytic.sourceAnatomySlope
-        Erdos327.Analytic.sourceTailBase)⁻¹ ≤
-      (3 : ℝ) ^ (27 : ℕ) := by
-  have hsmall : (0 : ℝ) < 1 / 4000000000000 := by norm_num
+      (1 - Erdos327.Analytic.centeredTailRatio
+        Erdos327.Tuned.Analytic.sourceAnatomySlope
+        Erdos327.Tuned.Analytic.sourceTailBase)⁻¹ ≤
+      (22225557 : ℝ) := by
+  have hsmall : (0 : ℝ) < 1 / 22225557 := by norm_num
   have hgap := source_centeredTailRatio_gap
   have hinv :
       (1 - Erdos327.Analytic.centeredTailRatio
-          Erdos327.Analytic.sourceAnatomySlope
-          Erdos327.Analytic.sourceTailBase)⁻¹ ≤
-        (1 / 4000000000000 : ℝ)⁻¹ :=
+          Erdos327.Tuned.Analytic.sourceAnatomySlope
+          Erdos327.Tuned.Analytic.sourceTailBase)⁻¹ ≤
+        (1 / 22225557 : ℝ)⁻¹ :=
     (inv_le_inv₀ (hsmall.trans_le hgap) hsmall).2 hgap
   calc
-    _ ≤ (1 / 4000000000000 : ℝ)⁻¹ := hinv
-    _ = 4000000000000 := by norm_num
-    _ ≤ (3 : ℝ) ^ (27 : ℕ) := by norm_num
+    _ ≤ (1 / 22225557 : ℝ)⁻¹ := hinv
+    _ = 22225557 := by norm_num
 
 private theorem source_exp_anatomy_log_le_three :
-    exp (Erdos327.Analytic.sourceAnatomySlope *
-      log Erdos327.Analytic.sourceTailBase) ≤ (3 : ℝ) := by
-  have hz : (0 : ℝ) < Erdos327.Analytic.sourceTailBase := by
-    norm_num [Erdos327.Analytic.sourceTailBase]
+    exp (Erdos327.Tuned.Analytic.sourceAnatomySlope *
+      log Erdos327.Tuned.Analytic.sourceTailBase) ≤ (3 : ℝ) := by
+  have hz : (0 : ℝ) < Erdos327.Tuned.Analytic.sourceTailBase := by
+    norm_num [Erdos327.Tuned.Analytic.sourceTailBase]
   have hlog := Real.log_lt_sub_one_of_pos hz
-    (by norm_num [Erdos327.Analytic.sourceTailBase])
-  have hA : Erdos327.Analytic.sourceAnatomySlope ≤ (2 : ℝ) := by
-    norm_num [Erdos327.Analytic.sourceAnatomySlope]
-  have hlog0 : 0 ≤ log Erdos327.Analytic.sourceTailBase :=
-    log_nonneg (by norm_num [Erdos327.Analytic.sourceTailBase])
+    (by norm_num [Erdos327.Tuned.Analytic.sourceTailBase])
+  have hA : Erdos327.Tuned.Analytic.sourceAnatomySlope ≤ (2 : ℝ) := by
+    norm_num [Erdos327.Tuned.Analytic.sourceAnatomySlope]
+  have hlog0 : 0 ≤ log Erdos327.Tuned.Analytic.sourceTailBase :=
+    log_nonneg (by norm_num [Erdos327.Tuned.Analytic.sourceTailBase])
   have hprod :
-      Erdos327.Analytic.sourceAnatomySlope *
-          log Erdos327.Analytic.sourceTailBase ≤ 1 := by
+      Erdos327.Tuned.Analytic.sourceAnatomySlope *
+          log Erdos327.Tuned.Analytic.sourceTailBase ≤ 1 := by
     calc
-      Erdos327.Analytic.sourceAnatomySlope *
-            log Erdos327.Analytic.sourceTailBase ≤
-          2 * (Erdos327.Analytic.sourceTailBase - 1) :=
+      Erdos327.Tuned.Analytic.sourceAnatomySlope *
+            log Erdos327.Tuned.Analytic.sourceTailBase ≤
+          2 * (Erdos327.Tuned.Analytic.sourceTailBase - 1) :=
         mul_le_mul hA hlog.le hlog0 (by norm_num)
-      _ ≤ 1 := by norm_num [Erdos327.Analytic.sourceTailBase]
+      _ ≤ 1 := by norm_num [Erdos327.Tuned.Analytic.sourceTailBase]
   exact (exp_le_exp.mpr hprod).trans Real.exp_one_lt_three.le
 
 theorem source_centeredTailConstant_le :
     Erdos327.Analytic.roughCenteredTailConstant
-        Erdos327.Analytic.sourceAnatomySlope
-        Erdos327.Analytic.sourceTailBase ≤ (3 : ℝ) ^ (150 : ℕ) := by
+        Erdos327.Tuned.Analytic.sourceAnatomySlope
+        Erdos327.Tuned.Analytic.sourceTailBase ≤
+          (3 : ℝ) ^ (98 : ℕ) * 22225557 := by
   unfold Erdos327.Analytic.roughCenteredTailConstant
   have hmoment0 : 0 ≤ Erdos327.Analytic.roughCenteredMomentConstant
-      Erdos327.Analytic.sourceTailBase :=
+      Erdos327.Tuned.Analytic.sourceTailBase :=
     Erdos327.Analytic.roughCenteredMomentConstant_nonneg _
-  have hexp0 : 0 ≤ exp (Erdos327.Analytic.sourceAnatomySlope *
-      log Erdos327.Analytic.sourceTailBase) := (exp_pos _).le
+  have hexp0 : 0 ≤ exp (Erdos327.Tuned.Analytic.sourceAnatomySlope *
+      log Erdos327.Tuned.Analytic.sourceTailBase) := (exp_pos _).le
   have hinv0 : 0 ≤
       (1 - Erdos327.Analytic.centeredTailRatio
-        Erdos327.Analytic.sourceAnatomySlope
-        Erdos327.Analytic.sourceTailBase)⁻¹ := by
+        Erdos327.Tuned.Analytic.sourceAnatomySlope
+        Erdos327.Tuned.Analytic.sourceTailBase)⁻¹ := by
     apply inv_nonneg.mpr
-    exact (by norm_num : (0 : ℝ) ≤ 1 / 4000000000000).trans
+    exact (by norm_num : (0 : ℝ) ≤ 1 / 22225557).trans
       source_centeredTailRatio_gap
   calc
     Erdos327.Analytic.roughCenteredMomentConstant
-          Erdos327.Analytic.sourceTailBase *
-        exp (Erdos327.Analytic.sourceAnatomySlope *
-          log Erdos327.Analytic.sourceTailBase) *
+          Erdos327.Tuned.Analytic.sourceTailBase *
+        exp (Erdos327.Tuned.Analytic.sourceAnatomySlope *
+          log Erdos327.Tuned.Analytic.sourceTailBase) *
         (1 - Erdos327.Analytic.centeredTailRatio
-          Erdos327.Analytic.sourceAnatomySlope
-          Erdos327.Analytic.sourceTailBase)⁻¹ ≤
-      (3 : ℝ) ^ (100 : ℕ) * 3 * (3 : ℝ) ^ (27 : ℕ) := by
+          Erdos327.Tuned.Analytic.sourceAnatomySlope
+          Erdos327.Tuned.Analytic.sourceTailBase)⁻¹ ≤
+      (3 : ℝ) ^ (97 : ℕ) * 3 * 22225557 := by
         apply mul_le_mul
         · apply mul_le_mul
           · exact roughCenteredMomentConstant_source_le
@@ -1515,74 +1535,80 @@ theorem source_centeredTailConstant_le :
         · exact source_centeredTailRatio_inv_le
         · exact hinv0
         · positivity
-    _ = (3 : ℝ) ^ (128 : ℕ) := by ring
-    _ ≤ (3 : ℝ) ^ (150 : ℕ) := by norm_num
+    _ = (3 : ℝ) ^ (98 : ℕ) * 22225557 := by ring
 
 /-- The fixed source intercept satisfies the exact tail budget used downstream. -/
 theorem explicitSourceBudget_spec :
     Erdos327.Analytic.roughCenteredTailConstant
-          Erdos327.Analytic.sourceAnatomySlope
-          Erdos327.Analytic.sourceTailBase *
-        Erdos327.Analytic.sourceTailBase ^ (-explicitSourceBudget) ≤
+          Erdos327.Tuned.Analytic.sourceAnatomySlope
+          Erdos327.Tuned.Analytic.sourceTailBase *
+        Erdos327.Tuned.Analytic.sourceTailBase ^ (-explicitSourceBudget) ≤
       (1 / 8 : ℝ) := by
-  let x : ℝ := 1 / 1000000
+  let x : ℝ := 3 / 10000
   have hbase :
-      Erdos327.Analytic.sourceTailBase = 1 + x := by
-    norm_num [Erdos327.Analytic.sourceTailBase, x]
-  have hmillion :
-      (2 : ℝ) ≤ Erdos327.Analytic.sourceTailBase ^ (1000000 : ℕ) := by
+      Erdos327.Tuned.Analytic.sourceTailBase = 1 + x := by
+    norm_num [Erdos327.Tuned.Analytic.sourceTailBase, x]
+  have hhundred :
+      (103 / 100 : ℝ) ≤
+        Erdos327.Tuned.Analytic.sourceTailBase ^ (100 : ℕ) := by
     have hbern := one_add_mul_le_pow (a := x)
-      (by norm_num [x] : (-2 : ℝ) ≤ x) 1000000
+      (by norm_num [x] : (-2 : ℝ) ≤ x) 100
     rw [hbase]
     norm_num [x] at hbern ⊢
-    exact hbern
-  have hlarge :
-      (8 : ℝ) * (3 : ℝ) ^ (150 : ℕ) ≤
-        Erdos327.Analytic.sourceTailBase ^ (400000000 : ℕ) := by
+  have htenThousand :
+      (19 : ℝ) ≤
+        Erdos327.Tuned.Analytic.sourceTailBase ^ (10000 : ℕ) := by
+    have hpow := pow_le_pow_left₀
+      (by norm_num : (0 : ℝ) ≤ 103 / 100) hhundred 100
     calc
-      (8 : ℝ) * (3 : ℝ) ^ (150 : ℕ) ≤
-          (8 : ℝ) * (4 : ℝ) ^ (150 : ℕ) := by gcongr <;> norm_num
-      _ = (2 : ℝ) ^ (303 : ℕ) := by
-        rw [show (8 : ℝ) = 2 ^ (3 : ℕ) by norm_num,
-          show (4 : ℝ) = 2 ^ (2 : ℕ) by norm_num,
-          ← pow_mul, ← pow_add]
-      _ ≤ (2 : ℝ) ^ (400 : ℕ) :=
-        pow_le_pow_right₀ (by norm_num : (1 : ℝ) ≤ 2) (by norm_num)
-      _ ≤ (Erdos327.Analytic.sourceTailBase ^ (1000000 : ℕ)) ^
-          (400 : ℕ) :=
-        pow_le_pow_left₀ (by norm_num : (0 : ℝ) ≤ 2) hmillion 400
-      _ = Erdos327.Analytic.sourceTailBase ^ (400000000 : ℕ) := by
+      (19 : ℝ) ≤ (103 / 100 : ℝ) ^ (100 : ℕ) := by norm_num
+      _ ≤ (Erdos327.Tuned.Analytic.sourceTailBase ^ (100 : ℕ)) ^
+          (100 : ℕ) := hpow
+      _ = Erdos327.Tuned.Analytic.sourceTailBase ^ (10000 : ℕ) := by
+        rw [← pow_mul]
+  have hlarge :
+      (8 : ℝ) * ((3 : ℝ) ^ (98 : ℕ) * 22225557) ≤
+        Erdos327.Tuned.Analytic.sourceTailBase ^ (440000 : ℕ) := by
+    calc
+      (8 : ℝ) * ((3 : ℝ) ^ (98 : ℕ) * 22225557) ≤
+          (19 : ℝ) ^ (44 : ℕ) := by norm_num
+      _ ≤ (Erdos327.Tuned.Analytic.sourceTailBase ^ (10000 : ℕ)) ^
+          (44 : ℕ) :=
+        pow_le_pow_left₀ (by norm_num : (0 : ℝ) ≤ 19) htenThousand 44
+      _ = Erdos327.Tuned.Analytic.sourceTailBase ^ (440000 : ℕ) := by
         rw [← pow_mul]
   have hrpow :
-      (8 : ℝ) * (3 : ℝ) ^ (150 : ℕ) ≤
-        Erdos327.Analytic.sourceTailBase ^ explicitSourceBudget := by
+      (8 : ℝ) * ((3 : ℝ) ^ (98 : ℕ) * 22225557) ≤
+        Erdos327.Tuned.Analytic.sourceTailBase ^ explicitSourceBudget := by
     simpa [explicitSourceBudget, Real.rpow_natCast] using hlarge
   have hleft0 :
       0 ≤ Erdos327.Analytic.roughCenteredTailConstant
-        Erdos327.Analytic.sourceAnatomySlope
-        Erdos327.Analytic.sourceTailBase :=
+        Erdos327.Tuned.Analytic.sourceAnatomySlope
+        Erdos327.Tuned.Analytic.sourceTailBase :=
     Erdos327.Analytic.roughCenteredTailConstant_nonneg
-      Erdos327.Analytic.sourceTail_gap
+      Erdos327.Tuned.Analytic.sourceTail_gap
   have hpowPos :
-      0 < Erdos327.Analytic.sourceTailBase ^ explicitSourceBudget :=
+      0 < Erdos327.Tuned.Analytic.sourceTailBase ^ explicitSourceBudget :=
     Real.rpow_pos_of_pos
-      (by norm_num [Erdos327.Analytic.sourceTailBase]) _
+      (by norm_num [Erdos327.Tuned.Analytic.sourceTailBase]) _
   have htargetPos :
-      0 < (8 : ℝ) * (3 : ℝ) ^ (150 : ℕ) := by positivity
+      0 < (8 : ℝ) * ((3 : ℝ) ^ (98 : ℕ) * 22225557) := by
+    positivity
   have hinv :
-      (Erdos327.Analytic.sourceTailBase ^ explicitSourceBudget)⁻¹ ≤
-        ((8 : ℝ) * (3 : ℝ) ^ (150 : ℕ))⁻¹ :=
+      (Erdos327.Tuned.Analytic.sourceTailBase ^ explicitSourceBudget)⁻¹ ≤
+        ((8 : ℝ) * ((3 : ℝ) ^ (98 : ℕ) * 22225557))⁻¹ :=
     (inv_le_inv₀ hpowPos htargetPos).2 hrpow
   rw [Real.rpow_neg_eq_inv_rpow,
-    Real.inv_rpow (by norm_num [Erdos327.Analytic.sourceTailBase] :
-      0 ≤ Erdos327.Analytic.sourceTailBase)]
+    Real.inv_rpow (by norm_num [Erdos327.Tuned.Analytic.sourceTailBase] :
+      0 ≤ Erdos327.Tuned.Analytic.sourceTailBase)]
   calc
     Erdos327.Analytic.roughCenteredTailConstant
-          Erdos327.Analytic.sourceAnatomySlope
-          Erdos327.Analytic.sourceTailBase *
-        (Erdos327.Analytic.sourceTailBase ^ explicitSourceBudget)⁻¹ ≤
-      (3 : ℝ) ^ (150 : ℕ) *
-        ((8 : ℝ) * (3 : ℝ) ^ (150 : ℕ))⁻¹ := by
+          Erdos327.Tuned.Analytic.sourceAnatomySlope
+          Erdos327.Tuned.Analytic.sourceTailBase *
+        (Erdos327.Tuned.Analytic.sourceTailBase ^ explicitSourceBudget)⁻¹ ≤
+      ((3 : ℝ) ^ (98 : ℕ) * 22225557) *
+        ((8 : ℝ) *
+          ((3 : ℝ) ^ (98 : ℕ) * 22225557))⁻¹ := by
       exact mul_le_mul source_centeredTailConstant_le hinv
         (inv_nonneg.mpr hpowPos.le) (by positivity)
     _ = (1 / 8 : ℝ) := by
@@ -1738,7 +1764,7 @@ private theorem explicitJ_medium_dominates_odd_constant :
     128 * 6561 *
         unrestrictedCenteredTailConstant oddAnatomySlope oddTailBase ≤
       (explicitJ : ℝ) ^ (1 / 10000 : ℝ) := by
-  have hscale : 200 ≤ 2 * explicitScale := by
+  have hscale : 200 ≤ explicitScale + 1 := by
     norm_num [explicitScale]
   calc
     128 * 6561 *
@@ -1747,7 +1773,7 @@ private theorem explicitJ_medium_dominates_odd_constant :
       gcongr
       exact odd_centeredTailConstant_le
     _ ≤ (2 : ℝ) ^ (200 : ℕ) := by norm_num
-    _ ≤ (2 : ℝ) ^ (2 * explicitScale) :=
+    _ ≤ (2 : ℝ) ^ (explicitScale + 1) :=
       pow_le_pow_right₀ (by norm_num : (1 : ℝ) ≤ 2) hscale
     _ = (explicitJ : ℝ) ^ (1 / 10000 : ℝ) :=
       explicitJ_medium_rpow_eq.symm
@@ -1778,6 +1804,31 @@ private theorem sqrt_explicitJ_le_log_explicitL :
     √(explicitJ : ℝ) ≤ (2 / 3 : ℝ) * explicitJ := hsqrt
     _ ≤ (explicitJ : ℝ) * log 2 := by
       nlinarith only [hlog2, hJ0]
+    _ = log (dyadicScale explicitJ : ℝ) :=
+      (log_dyadicScale explicitJ).symm
+    _ ≤ log (explicitL : ℝ) :=
+      Real.log_le_log hdyadicPos hdyadic
+
+private theorem half_explicitJ_le_log_explicitL :
+    (explicitJ : ℝ) / 2 ≤ log (explicitL : ℝ) := by
+  have hJ0 : (0 : ℝ) ≤ explicitJ := by positivity
+  have hlog2 : (1 / 2 : ℝ) ≤ log 2 :=
+    (by norm_num : (1 / 2 : ℝ) < 0.6931471803).le.trans
+      Real.log_two_gt_d9.le
+  have hdyadic :
+      (dyadicScale explicitJ : ℝ) ≤ (explicitL : ℝ) := by
+    change (dyadicScale explicitJ : ℝ) ≤
+      (sourceCoupledCutoff explicitJ : ℝ)
+    apply Nat.cast_le.2
+    have hpos := dyadicScale_pos explicitJ
+    have hcut := eight_dyadicScale_lt_sourceCoupledCutoff explicitJ
+    omega
+  have hdyadicPos : (0 : ℝ) < dyadicScale explicitJ := by
+    exact Nat.cast_pos.2 (dyadicScale_pos explicitJ)
+  calc
+    (explicitJ : ℝ) / 2 = (explicitJ : ℝ) * (1 / 2 : ℝ) := by ring
+    _ ≤ (explicitJ : ℝ) * log 2 :=
+      mul_le_mul_of_nonneg_left hlog2 hJ0
     _ = log (dyadicScale explicitJ : ℝ) :=
       (log_dyadicScale explicitJ).symm
     _ ≤ log (explicitL : ℝ) :=
@@ -2082,31 +2133,31 @@ private theorem scheduledLogLossConstant_rpow_le :
 
 private theorem sourceBulkRawConstant_explicit_le :
     sourceBulkRawConstant explicitSourceBudget ≤
-      (2 : ℝ) ^ (800000228 : ℕ) := by
+      (2 : ℝ) ^ (880228 : ℕ) := by
   unfold sourceBulkRawConstant
   rw [sourceBudgetConstant_explicit_eq]
   calc
-    16 * (2 : ℝ) ^ (800000004 : ℕ) *
+    16 * (2 : ℝ) ^ (880004 : ℕ) *
           sourceScheduledProductConstant *
           residualMomentConstant (1 / 4 : ℝ) ≤
-        16 * (2 : ℝ) ^ (800000004 : ℕ) *
+        16 * (2 : ℝ) ^ (880004 : ℕ) *
           (2 : ℝ) ^ (100 : ℕ) * (2 : ℝ) ^ (120 : ℕ) := by
       have hprefix :
-          16 * (2 : ℝ) ^ (800000004 : ℕ) *
+          16 * (2 : ℝ) ^ (880004 : ℕ) *
               sourceScheduledProductConstant ≤
-            16 * (2 : ℝ) ^ (800000004 : ℕ) *
+            16 * (2 : ℝ) ^ (880004 : ℕ) *
               (2 : ℝ) ^ (100 : ℕ) :=
         mul_le_mul_of_nonneg_left sourceScheduledProductConstant_le
           (by positivity)
       exact mul_le_mul hprefix residualMomentConstant_quarter_le
         (residualMomentConstant_nonneg _) (by positivity)
-    _ = (2 : ℝ) ^ (800000228 : ℕ) := by
+    _ = (2 : ℝ) ^ (880228 : ℕ) := by
       rw [show (16 : ℝ) = 2 ^ (4 : ℕ) by norm_num,
         ← pow_add, ← pow_add, ← pow_add]
 
 private theorem sourceBulkProfileConstant_explicit_le :
     sourceBulkProfileConstant explicitSourceBudget ≤
-      (2 : ℝ) ^ (800001000 : ℕ) := by
+      (2 : ℝ) ^ (881000 : ℕ) := by
   unfold sourceBulkProfileConstant
   calc
     sourceBulkRawConstant explicitSourceBudget *
@@ -2114,56 +2165,56 @@ private theorem sourceBulkProfileConstant_explicit_le :
           (2 : ℝ) ^ (5 / 2 : ℝ) *
           log (2 : ℝ) ^ (-(5 / 2 : ℝ)) *
           scheduledLogLossConstant ^ (5 / 2 : ℝ) ≤
-        (2 : ℝ) ^ (800000228 : ℕ) * 16 * 8 * 8 *
+        (2 : ℝ) ^ (880228 : ℕ) * 16 * 8 * 8 *
           (2 : ℝ) ^ (48 : ℕ) := by
       have h₁ := mul_le_mul sourceBulkRawConstant_explicit_le
         (sourceCanonicalBudget_rpow_le_nine.trans (by norm_num : (9 : ℝ) ≤ 16))
         (Real.rpow_nonneg (by norm_num : (0 : ℝ) ≤ 3) _)
-        (by positivity : (0 : ℝ) ≤ (2 : ℝ) ^ (800000228 : ℕ))
+        (by positivity : (0 : ℝ) ≤ (2 : ℝ) ^ (880228 : ℕ))
       have h₂ := mul_le_mul h₁ two_rpow_five_halves_le_eight
         (Real.rpow_nonneg (by norm_num : (0 : ℝ) ≤ 2) _)
         (by positivity :
-          0 ≤ (2 : ℝ) ^ (800000228 : ℕ) * 16)
+          0 ≤ (2 : ℝ) ^ (880228 : ℕ) * 16)
       have h₃ := mul_le_mul h₂ log_two_rpow_neg_five_halves_le
         (Real.rpow_nonneg (log_nonneg (by norm_num : (1 : ℝ) ≤ 2)) _)
         (by positivity :
-          0 ≤ (2 : ℝ) ^ (800000228 : ℕ) * 16 * 8)
+          0 ≤ (2 : ℝ) ^ (880228 : ℕ) * 16 * 8)
       exact mul_le_mul h₃ scheduledLogLossConstant_rpow_le
         (Real.rpow_nonneg scheduledLogLossConstant_pos.le _)
         (by positivity)
-    _ = (2 : ℝ) ^ (800000286 : ℕ) := by
+    _ = (2 : ℝ) ^ (880286 : ℕ) := by
       rw [show (16 : ℝ) = 2 ^ (4 : ℕ) by norm_num,
         show (8 : ℝ) = 2 ^ (3 : ℕ) by norm_num,
         ← pow_add, ← pow_add, ← pow_add, ← pow_add]
-    _ ≤ (2 : ℝ) ^ (800001000 : ℕ) :=
+    _ ≤ (2 : ℝ) ^ (881000 : ℕ) :=
       pow_le_pow_right₀ (by norm_num : (1 : ℝ) ≤ 2) (by norm_num)
 
 private theorem explicitJ_tenth_rpow_eq :
     (explicitJ : ℝ) ^ (1 / 10 : ℝ) =
-      (2 : ℝ) ^ (2000 * explicitScale) := by
+      (2 : ℝ) ^ (1000 * (explicitScale + 1)) := by
   have hJpos : (0 : ℝ) < explicitJ := by
     exact Nat.cast_pos.2 (show 0 < explicitJ by unfold explicitJ; positivity)
   have hrelation :
       (explicitLogExponent : ℝ) =
-        10 * ((2000 * explicitScale : ℕ) : ℝ) := by
+        10 * ((1000 * (explicitScale + 1) : ℕ) : ℝ) := by
     norm_num [explicitLogExponent, explicitQuarterExponent, explicitScale]
   have hexponent :
       (explicitLogExponent : ℝ) * log 2 * (1 / 10 : ℝ) =
-        ((2000 * explicitScale : ℕ) : ℝ) * log 2 := by
+        ((1000 * (explicitScale + 1) : ℕ) : ℝ) * log 2 := by
     calc
       (explicitLogExponent : ℝ) * log 2 * (1 / 10 : ℝ) =
           ((explicitLogExponent : ℝ) / 10) * log 2 := by ring
-      _ = ((2000 * explicitScale : ℕ) : ℝ) * log 2 := by
+      _ = ((1000 * (explicitScale + 1) : ℕ) : ℝ) * log 2 := by
         congr 1
         apply (div_eq_iff (by norm_num : (10 : ℝ) ≠ 0)).2
         nlinarith only [hrelation]
   rw [Real.rpow_def_of_pos hJpos, log_explicitJ_eq, hexponent]
   calc
-    exp (((2000 * explicitScale : ℕ) : ℝ) * log 2) =
-        exp (log 2) ^ (2000 * explicitScale) := by
+    exp (((1000 * (explicitScale + 1) : ℕ) : ℝ) * log 2) =
+        exp (log 2) ^ (1000 * (explicitScale + 1)) := by
       simpa using
-        (Real.exp_nat_mul (log 2) (2000 * explicitScale))
-    _ = (2 : ℝ) ^ (2000 * explicitScale) := by
+        (Real.exp_nat_mul (log 2) (1000 * (explicitScale + 1)))
+    _ = (2 : ℝ) ^ (1000 * (explicitScale + 1)) := by
       rw [Real.exp_log (by norm_num)]
 
 private theorem sourceBulk_absorbed_exponent_le :
@@ -2234,11 +2285,11 @@ private theorem explicit_sourceBulk_coefficient_small :
     calc
       640 * 6561 * sourceBulkProfileConstant explicitSourceBudget ≤
           (2 : ℝ) ^ (23 : ℕ) *
-            (2 : ℝ) ^ (800001000 : ℕ) :=
+            (2 : ℝ) ^ (881000 : ℕ) :=
         mul_le_mul hnum sourceBulkProfileConstant_explicit_le
           (sourceBulkProfileConstant_pos _).le (by positivity)
-      _ = (2 : ℝ) ^ (800001023 : ℕ) := by rw [← pow_add]
-      _ ≤ (2 : ℝ) ^ (2000 * explicitScale) :=
+      _ = (2 : ℝ) ^ (881023 : ℕ) := by rw [← pow_add]
+      _ ≤ (2 : ℝ) ^ (1000 * (explicitScale + 1)) :=
         pow_le_pow_right₀ (by norm_num : (1 : ℝ) ≤ 2)
           (by norm_num [explicitScale])
       _ = (explicitJ : ℝ) ^ (1 / 10 : ℝ) :=
@@ -2392,17 +2443,17 @@ theorem explicit_exists_sourceTerminal_start_for_roughDensity :
 
 private theorem sourceBoundaryRawConstant_explicit_le :
     sourceBoundaryRawConstant explicitSourceBudget ≤
-      (2 : ℝ) ^ (800000108 : ℕ) := by
+      (2 : ℝ) ^ (880108 : ℕ) := by
   unfold sourceBoundaryRawConstant
   rw [sourceBudgetConstant_explicit_eq]
   calc
-    16 * (2 : ℝ) ^ (800000004 : ℕ) *
+    16 * (2 : ℝ) ^ (880004 : ℕ) *
           sourceScheduledProductConstant ≤
-        16 * (2 : ℝ) ^ (800000004 : ℕ) *
+        16 * (2 : ℝ) ^ (880004 : ℕ) *
           (2 : ℝ) ^ (100 : ℕ) :=
       mul_le_mul_of_nonneg_left sourceScheduledProductConstant_le
         (by positivity)
-    _ = (2 : ℝ) ^ (800000108 : ℕ) := by
+    _ = (2 : ℝ) ^ (880108 : ℕ) := by
       rw [show (16 : ℝ) = 2 ^ (4 : ℕ) by norm_num,
         ← pow_add, ← pow_add]
 
@@ -2452,7 +2503,7 @@ private theorem sourceTransition_rpow_factor_le :
 
 private theorem sourceTransitionAsymptoticConstant_explicit_le :
     sourceTransitionAsymptoticConstant explicitSourceBudget ≤
-      (2 : ℝ) ^ (800001000 : ℕ) := by
+      (2 : ℝ) ^ (881000 : ℕ) := by
   unfold sourceTransitionAsymptoticConstant
   have h₁ := mul_le_mul (by norm_num : (3 : ℝ) ≤ 4)
     sourceBoundaryRawConstant_explicit_le
@@ -2460,20 +2511,20 @@ private theorem sourceTransitionAsymptoticConstant_explicit_le :
   have h₂ := mul_le_mul h₁ sourceScheduledIndexProfileConstant_le
     (sourceScheduledIndexProfileConstant_pos _).le
     (by positivity :
-      0 ≤ (4 : ℝ) * (2 : ℝ) ^ (800000108 : ℕ))
+      0 ≤ (4 : ℝ) * (2 : ℝ) ^ (880108 : ℕ))
   have h₃ := mul_le_mul h₂ sourceTransition_rpow_factor_le
     (Real.rpow_nonneg (by positivity : (0 : ℝ) ≤ 3 * log (2 : ℝ)) _)
     (by positivity :
-      0 ≤ (4 : ℝ) * (2 : ℝ) ^ (800000108 : ℕ) *
+      0 ≤ (4 : ℝ) * (2 : ℝ) ^ (880108 : ℕ) *
         (2 : ℝ) ^ (58 : ℕ))
   calc
-    _ ≤ 4 * (2 : ℝ) ^ (800000108 : ℕ) *
+    _ ≤ 4 * (2 : ℝ) ^ (880108 : ℕ) *
           (2 : ℝ) ^ (58 : ℕ) * 16 := h₃
-    _ = (2 : ℝ) ^ (800000172 : ℕ) := by
+    _ = (2 : ℝ) ^ (880172 : ℕ) := by
       rw [show (4 : ℝ) = 2 ^ (2 : ℕ) by norm_num,
         show (16 : ℝ) = 2 ^ (4 : ℕ) by norm_num,
         ← pow_add, ← pow_add, ← pow_add]
-    _ ≤ (2 : ℝ) ^ (800001000 : ℕ) :=
+    _ ≤ (2 : ℝ) ^ (881000 : ℕ) :=
       pow_le_pow_right₀ (by norm_num : (1 : ℝ) ≤ 2) (by norm_num)
 
 private theorem explicitJ_medium_le_log_explicitL_rpow :
@@ -2523,11 +2574,11 @@ private theorem explicit_sourceTransitionAsymptotic_le_roughDensity :
     have hnum : (64 * 6561 : ℝ) ≤ (2 : ℝ) ^ (19 : ℕ) := by norm_num
     calc
       64 * 6561 * C ≤
-          (2 : ℝ) ^ (19 : ℕ) * (2 : ℝ) ^ (800001000 : ℕ) :=
+          (2 : ℝ) ^ (19 : ℕ) * (2 : ℝ) ^ (881000 : ℕ) :=
         mul_le_mul hnum sourceTransitionAsymptoticConstant_explicit_le
           (sourceTransitionAsymptoticConstant_pos _).le (by positivity)
-      _ = (2 : ℝ) ^ (800001019 : ℕ) := by rw [← pow_add]
-      _ ≤ (2 : ℝ) ^ (2 * explicitScale) :=
+      _ = (2 : ℝ) ^ (881019 : ℕ) := by rw [← pow_add]
+      _ ≤ (2 : ℝ) ^ (explicitScale + 1) :=
         pow_le_pow_right₀ (by norm_num : (1 : ℝ) ≤ 2)
           (by norm_num [explicitScale])
       _ = (explicitJ : ℝ) ^ (1 / 10000 : ℝ) :=
@@ -2877,28 +2928,39 @@ private theorem explicitScalePower_le_log_explicitL_rpow :
     (2 : ℝ) ^ explicitScale ≤
       log (explicitL : ℝ) ^ (1 / 10000 : ℝ) := by
   have hJ0 : (0 : ℝ) ≤ explicitJ := by positivity
-  have hroot :
-      (explicitJ : ℝ) ^ (1 / 20000 : ℝ) =
-        (√(explicitJ : ℝ)) ^ (1 / 10000 : ℝ) := by
+  have htwo :
+      (2 : ℝ) ^ (1 / 10000 : ℝ) ≤ 2 := by
     calc
-      (explicitJ : ℝ) ^ (1 / 20000 : ℝ) =
-          (explicitJ : ℝ) ^
-            ((1 / 2 : ℝ) * (1 / 10000 : ℝ)) := by
-        congr 1
-        norm_num
-      _ = ((explicitJ : ℝ) ^ (1 / 2 : ℝ)) ^
-            (1 / 10000 : ℝ) :=
-        Real.rpow_mul hJ0 _ _
-      _ = (√(explicitJ : ℝ)) ^ (1 / 10000 : ℝ) := by
-        rw [Real.sqrt_eq_rpow]
-  rw [← explicitJ_small_rpow_eq, hroot]
-  exact Real.rpow_le_rpow (Real.sqrt_nonneg _)
-    sqrt_explicitJ_le_log_explicitL (by norm_num)
+      (2 : ℝ) ^ (1 / 10000 : ℝ) ≤ (2 : ℝ) ^ (1 : ℝ) :=
+        Real.rpow_le_rpow_of_exponent_le (by norm_num) (by norm_num)
+      _ = 2 := by norm_num
+  have hquot :
+      (explicitJ : ℝ) ^ (1 / 10000 : ℝ) / 2 ≤
+        (explicitJ : ℝ) ^ (1 / 10000 : ℝ) /
+          (2 : ℝ) ^ (1 / 10000 : ℝ) :=
+    div_le_div_of_nonneg_left (Real.rpow_nonneg hJ0 _)
+      (Real.rpow_pos_of_pos (by norm_num) _) htwo
+  have hhalf0 : (0 : ℝ) ≤ (explicitJ : ℝ) / 2 :=
+    div_nonneg hJ0 (by norm_num)
+  have hroot := Real.rpow_le_rpow hhalf0
+    half_explicitJ_le_log_explicitL (by norm_num : (0 : ℝ) ≤ 1 / 10000)
+  calc
+    (2 : ℝ) ^ explicitScale =
+        (2 : ℝ) ^ (explicitScale + 1) / 2 := by
+      rw [pow_succ]
+      ring
+    _ = (explicitJ : ℝ) ^ (1 / 10000 : ℝ) / 2 := by
+      rw [explicitJ_medium_rpow_eq]
+    _ ≤ (explicitJ : ℝ) ^ (1 / 10000 : ℝ) /
+          (2 : ℝ) ^ (1 / 10000 : ℝ) := hquot
+    _ = ((explicitJ : ℝ) / 2) ^ (1 / 10000 : ℝ) := by
+      rw [Real.div_rpow hJ0 (by norm_num : (0 : ℝ) ≤ 2)]
+    _ ≤ log (explicitL : ℝ) ^ (1 / 10000 : ℝ) := hroot
 
 private theorem explicit_const_mul_log_rpow_le_roughDensity
     {C D η : ℝ}
     (hC0 : 0 ≤ C)
-    (hC : C ≤ (2 : ℝ) ^ (explicitScale / 2))
+    (hC : C ≤ (2 : ℝ) ^ (explicitScale - 26))
     (hD0 : 0 < D) (hD : D ≤ 8192)
     (hgap : (1 / 10000 : ℝ) ≤ η - 1) :
     C * log (explicitL : ℝ) ^ (-η) ≤
@@ -2923,13 +2985,12 @@ private theorem explicit_const_mul_log_rpow_le_roughDensity
     calc
       D * 6561 * C ≤
           (2 : ℝ) ^ (26 : ℕ) *
-            (2 : ℝ) ^ (explicitScale / 2) :=
+            (2 : ℝ) ^ (explicitScale - 26) :=
         mul_le_mul hfront hC hC0 (by positivity)
-      _ = (2 : ℝ) ^ (explicitScale / 2 + 26) := by
+      _ = (2 : ℝ) ^ (explicitScale - 26 + 26) := by
         rw [add_comm, ← pow_add]
-      _ ≤ (2 : ℝ) ^ explicitScale :=
-        pow_le_pow_right₀ (by norm_num : (1 : ℝ) ≤ 2)
-          (by norm_num [explicitScale])
+      _ = (2 : ℝ) ^ explicitScale := by
+        norm_num [explicitScale]
       _ ≤ log (explicitL : ℝ) ^ (1 / 10000 : ℝ) :=
         explicitScalePower_le_log_explicitL_rpow
       _ ≤ log (explicitL : ℝ) ^ (η - 1) :=
@@ -3133,7 +3194,7 @@ private theorem mixedCanonicalResidualConstant_le :
 
 private theorem mixedSourceBudgetPower_le :
     mixedSourceWeightBase ^ explicitSourceBudget ≤
-      (2 : ℝ) ^ (800000000 : ℕ) := by
+      (2 : ℝ) ^ (880000 : ℕ) := by
   have hbase0 : 0 ≤ mixedSourceWeightBase := by
     norm_num [mixedSourceWeightBase]
   have hbase : mixedSourceWeightBase ≤ (4 : ℝ) := by
@@ -3144,9 +3205,9 @@ private theorem mixedSourceBudgetPower_le :
     mixedSourceWeightBase ^ explicitSourceBudget ≤
         (4 : ℝ) ^ explicitSourceBudget :=
       Real.rpow_le_rpow hbase0 hbase hexp0
-    _ = (4 : ℝ) ^ (400000000 : ℕ) := by
+    _ = (4 : ℝ) ^ (440000 : ℕ) := by
       norm_num [explicitSourceBudget, Real.rpow_natCast]
-    _ = (2 : ℝ) ^ (800000000 : ℕ) := by
+    _ = (2 : ℝ) ^ (880000 : ℕ) := by
       rw [show (4 : ℝ) = 2 ^ (2 : ℕ) by norm_num, ← pow_mul]
 
 private theorem five_rpow_mixedRegularity_le :
@@ -3159,12 +3220,12 @@ private theorem five_rpow_mixedRegularity_le :
 
 private theorem mixedCanonicalMainConstant_le :
     mixedCanonicalMainConstant explicitSourceBudget ≤
-      (2 : ℝ) ^ (800000300 : ℕ) := by
+      (2 : ℝ) ^ (880300 : ℕ) := by
   unfold mixedCanonicalMainConstant
   have hAB :
       mixedSourceWeightBase ^ explicitSourceBudget *
           5 ^ mixedCanonicalRegularityExponent ≤
-        (2 : ℝ) ^ (800000000 : ℕ) * 32 :=
+        (2 : ℝ) ^ (880000 : ℕ) * 32 :=
     mul_le_mul mixedSourceBudgetPower_le
       (five_rpow_mixedRegularity_le.trans (by norm_num))
       (Real.rpow_nonneg (by norm_num) _)
@@ -3174,28 +3235,28 @@ private theorem mixedCanonicalMainConstant_le :
           5 ^ mixedCanonicalRegularityExponent) *
           mixedCanonicalScheduledProductConstant *
           mixedCanonicalResidualConstant ≤
-        8 * ((2 : ℝ) ^ (800000000 : ℕ) * 32) *
+        8 * ((2 : ℝ) ^ (880000 : ℕ) * 32) *
           (2 : ℝ) ^ (120 : ℕ) * (2 : ℝ) ^ (150 : ℕ) := by
       have h1 := mul_le_mul_of_nonneg_left hAB (by norm_num : (0 : ℝ) ≤ 8)
       have h2 := mul_le_mul h1 mixedCanonicalScheduledProductConstant_le
         mixedCanonicalScheduledProductConstant_pos.le (by positivity)
       exact mul_le_mul h2 mixedCanonicalResidualConstant_le
         mixedCanonicalResidualConstant_pos.le (by positivity)
-    _ = (2 : ℝ) ^ (800000278 : ℕ) := by
+    _ = (2 : ℝ) ^ (880278 : ℕ) := by
       rw [show (8 : ℝ) = 2 ^ (3 : ℕ) by norm_num,
         show (32 : ℝ) = 2 ^ (5 : ℕ) by norm_num,
         ← pow_add, ← pow_add, ← pow_add, ← pow_add]
-    _ ≤ (2 : ℝ) ^ (800000300 : ℕ) :=
+    _ ≤ (2 : ℝ) ^ (880300 : ℕ) :=
       pow_le_pow_right₀ (by norm_num) (by norm_num)
 
 private theorem mixedCanonicalErrorConstant_le :
     mixedCanonicalErrorConstant explicitSourceBudget ≤
-      (2 : ℝ) ^ (800000200 : ℕ) := by
+      (2 : ℝ) ^ (880200 : ℕ) := by
   unfold mixedCanonicalErrorConstant
   have hAB :
       mixedSourceWeightBase ^ explicitSourceBudget *
           5 ^ mixedCanonicalRegularityExponent ≤
-        (2 : ℝ) ^ (800000000 : ℕ) * 32 :=
+        (2 : ℝ) ^ (880000 : ℕ) * 32 :=
     mul_le_mul mixedSourceBudgetPower_le
       (five_rpow_mixedRegularity_le.trans (by norm_num))
       (Real.rpow_nonneg (by norm_num) _)
@@ -3204,7 +3265,7 @@ private theorem mixedCanonicalErrorConstant_le :
     9 * (mixedSourceWeightBase ^ explicitSourceBudget *
           5 ^ mixedCanonicalRegularityExponent) *
           mixedCanonicalResidualConstant ≤
-        16 * ((2 : ℝ) ^ (800000000 : ℕ) * 32) *
+        16 * ((2 : ℝ) ^ (880000 : ℕ) * 32) *
           (2 : ℝ) ^ (150 : ℕ) := by
       have h1 := mul_le_mul_of_nonneg_left hAB (by norm_num : (0 : ℝ) ≤ 9)
       have hfront : (9 : ℝ) ≤ 16 := by norm_num
@@ -3212,11 +3273,11 @@ private theorem mixedCanonicalErrorConstant_le :
         (mul_le_mul_of_nonneg_right hfront (by positivity))
       exact mul_le_mul h2 mixedCanonicalResidualConstant_le
         mixedCanonicalResidualConstant_pos.le (by positivity)
-    _ = (2 : ℝ) ^ (800000159 : ℕ) := by
+    _ = (2 : ℝ) ^ (880159 : ℕ) := by
       rw [show (16 : ℝ) = 2 ^ (4 : ℕ) by norm_num,
         show (32 : ℝ) = 2 ^ (5 : ℕ) by norm_num,
         ← pow_add, ← pow_add, ← pow_add]
-    _ ≤ (2 : ℝ) ^ (800000200 : ℕ) :=
+    _ ≤ (2 : ℝ) ^ (880200 : ℕ) :=
       pow_le_pow_right₀ (by norm_num) (by norm_num)
 
 private theorem mixedScheduleLogConstant_le :
@@ -3286,7 +3347,7 @@ private theorem mixedCanonicalBulkProfileConstant_le :
     _ = (2 : ℝ) ^ (40 : ℕ) := by rw [← pow_add]
 
 private theorem mixedCrossTail_gap :
-    (1 / 5000 : ℝ) ≤
+    (1 / 30000 : ℝ) ≤
       -(mixedCanonicalCrossExponent + mixedBulkLogAbsorption + 1) := by
   unfold mixedCanonicalCrossExponent mixedBulkLogAbsorption
     sourceAnatomySlope oddAnatomySlope
@@ -3297,19 +3358,19 @@ private theorem mixedCrossTail_gap :
 private theorem mixedBulkPowerTailConstant_le :
     powerTailConstant
         (mixedCanonicalCrossExponent + mixedBulkLogAbsorption) ≤
-      (8192 : ℝ) := by
+      (32768 : ℝ) := by
   have hden :
       0 < -(mixedCanonicalCrossExponent + mixedBulkLogAbsorption + 1) :=
-    (by norm_num : (0 : ℝ) < 1 / 5000).trans_le mixedCrossTail_gap
+    (by norm_num : (0 : ℝ) < 1 / 30000).trans_le mixedCrossTail_gap
   unfold powerTailConstant
   calc
     (-(mixedCanonicalCrossExponent + mixedBulkLogAbsorption + 1))⁻¹ =
         1 / (-(mixedCanonicalCrossExponent + mixedBulkLogAbsorption + 1)) := by
       rw [one_div]
-    _ ≤ 1 / (1 / 5000 : ℝ) :=
+    _ ≤ 1 / (1 / 30000 : ℝ) :=
       one_div_le_one_div_of_le (by norm_num) mixedCrossTail_gap
-    _ = 5000 := by norm_num
-    _ ≤ 8192 := by norm_num
+    _ = 30000 := by norm_num
+    _ ≤ 32768 := by norm_num
 
 private theorem mixedInverseLogFactor_le :
     (1 / (2 * log 2) : ℝ) ^
@@ -3348,7 +3409,7 @@ private theorem mixedBulkMovingTailConstant_le :
   have htail :
       powerTailConstant
           (mixedCanonicalCrossExponent + mixedBulkLogAbsorption) ≤
-        (2 : ℝ) ^ (13 : ℕ) :=
+        (2 : ℝ) ^ (15 : ℕ) :=
     mixedBulkPowerTailConstant_le.trans (by norm_num)
   have hinverse :
       (1 / (2 * log 2)) ^
@@ -3361,7 +3422,7 @@ private theorem mixedBulkMovingTailConstant_le :
             (mixedCanonicalCrossExponent + mixedBulkLogAbsorption) *
           (1 / (2 * log 2)) ^
             (mixedCanonicalCrossExponent + mixedBulkLogAbsorption + 1) ≤
-        (2 : ℝ) ^ (40 : ℕ) * (2 : ℝ) ^ (13 : ℕ) *
+        (2 : ℝ) ^ (40 : ℕ) * (2 : ℝ) ^ (15 : ℕ) *
           (2 : ℝ) ^ (4 : ℕ) := by
       have h1 := mul_le_mul mixedCanonicalBulkProfileConstant_le
         htail
@@ -3371,33 +3432,33 @@ private theorem mixedBulkMovingTailConstant_le :
       exact mul_le_mul h1 hinverse
         (Real.rpow_nonneg (by positivity) _)
         (by positivity)
-    _ = (2 : ℝ) ^ (57 : ℕ) := by
+    _ = (2 : ℝ) ^ (59 : ℕ) := by
       rw [← pow_add, ← pow_add]
     _ ≤ (2 : ℝ) ^ (60 : ℕ) := by norm_num
 
 private theorem mixedMainMovingConstant_le :
     mixedCanonicalMainConstant explicitSourceBudget *
         mixedBulkMovingTailConstant ≤
-      (2 : ℝ) ^ (800000360 : ℕ) := by
+      (2 : ℝ) ^ (880360 : ℕ) := by
   calc
     mixedCanonicalMainConstant explicitSourceBudget *
           mixedBulkMovingTailConstant ≤
-        (2 : ℝ) ^ (800000300 : ℕ) * (2 : ℝ) ^ (60 : ℕ) :=
+        (2 : ℝ) ^ (880300 : ℕ) * (2 : ℝ) ^ (60 : ℕ) :=
       mul_le_mul mixedCanonicalMainConstant_le
         mixedBulkMovingTailConstant_le mixedBulkMovingTailConstant_pos.le
         (by positivity)
-    _ = (2 : ℝ) ^ (800000360 : ℕ) := by rw [← pow_add]
+    _ = (2 : ℝ) ^ (880360 : ℕ) := by rw [← pow_add]
 
 private theorem mixedMainMovingConstant_le_scale :
     mixedCanonicalMainConstant explicitSourceBudget *
         mixedBulkMovingTailConstant ≤
-      (2 : ℝ) ^ (explicitScale / 2) :=
+      (2 : ℝ) ^ (explicitScale - 26) :=
   mixedMainMovingConstant_le.trans
     (pow_le_pow_right₀ (by norm_num) (by norm_num [explicitScale]))
 
 private theorem mixedErrorConstant_le_scale :
     mixedCanonicalErrorConstant explicitSourceBudget ≤
-      (2 : ℝ) ^ (explicitScale / 2) :=
+      (2 : ℝ) ^ (explicitScale - 26) :=
   mixedCanonicalErrorConstant_le.trans
     (pow_le_pow_right₀ (by norm_num) (by norm_num [explicitScale]))
 
@@ -3979,10 +4040,10 @@ theorem explicit_sum_mixedCanonicalGoodSieveError_le_roughDensity
     _ = (N : ℝ) * roughDensity explicitL / 512 := by ring
 
 private theorem tiny_le_mixedTerminalLogAbsorption :
-    (1 / 10000 : ℝ) ≤ mixedTerminalLogAbsorption := by
+    (1 / 25000 : ℝ) ≤ mixedTerminalLogAbsorption := by
   unfold mixedTerminalLogAbsorption
   have hgap := mixedCrossTail_gap
-  have habs := mixedBulkLogAbsorption_pos
+  unfold mixedBulkLogAbsorption at hgap
   nlinarith
 
 private theorem explicit_mixedTerminalProfile_absorbed
@@ -3996,8 +4057,7 @@ private theorem explicit_mixedTerminalProfile_absorbed
     have hJ1 : 1 ≤ explicitJ :=
       (by omega : 1 ≤ 64).trans explicitJ_ge_sixty_four
     omega
-  have hlog := explicit_log_rpow_le_tiny_of_succ hJsucc
-    (m := (4 : ℝ)) (by norm_num) (by norm_num)
+  have hlog := explicit_log_four_rpow_le_tiny_of_succ hJsucc
   have hx : (0 : ℝ) < ((j + 1 : ℕ) : ℝ) := by
     exact_mod_cast Nat.succ_pos j
   calc
@@ -4270,12 +4330,12 @@ private theorem mixedBoundaryProfileConstant_le :
 
 private theorem mixedBoundaryMainFixedConstant_le :
     mixedBoundaryMainFixedConstant explicitSourceBudget ≤
-      (2 : ℝ) ^ (800000130 : ℕ) := by
+      (2 : ℝ) ^ (880130 : ℕ) := by
   unfold mixedBoundaryMainFixedConstant
   have hAB :
       mixedSourceWeightBase ^ explicitSourceBudget *
           5 ^ mixedCanonicalRegularityExponent ≤
-        (2 : ℝ) ^ (800000000 : ℕ) * 32 :=
+        (2 : ℝ) ^ (880000 : ℕ) * 32 :=
     mul_le_mul mixedSourceBudgetPower_le
       (five_rpow_mixedRegularity_le.trans (by norm_num))
       (Real.rpow_nonneg (by norm_num) _)
@@ -4284,26 +4344,26 @@ private theorem mixedBoundaryMainFixedConstant_le :
     8 * (mixedSourceWeightBase ^ explicitSourceBudget *
           5 ^ mixedCanonicalRegularityExponent) *
           mixedCanonicalScheduledProductConstant ≤
-        8 * ((2 : ℝ) ^ (800000000 : ℕ) * 32) *
+        8 * ((2 : ℝ) ^ (880000 : ℕ) * 32) *
           (2 : ℝ) ^ (120 : ℕ) := by
       exact mul_le_mul (mul_le_mul_of_nonneg_left hAB (by norm_num))
         mixedCanonicalScheduledProductConstant_le
         mixedCanonicalScheduledProductConstant_pos.le (by positivity)
-    _ = (2 : ℝ) ^ (800000128 : ℕ) := by
+    _ = (2 : ℝ) ^ (880128 : ℕ) := by
       rw [show (8 : ℝ) = 2 ^ (3 : ℕ) by norm_num,
         show (32 : ℝ) = 2 ^ (5 : ℕ) by norm_num,
         ← pow_add, ← pow_add, ← pow_add]
-    _ ≤ (2 : ℝ) ^ (800000130 : ℕ) :=
+    _ ≤ (2 : ℝ) ^ (880130 : ℕ) :=
       pow_le_pow_right₀ (by norm_num) (by norm_num)
 
 private theorem mixedBoundaryErrorFixedConstant_le :
     mixedBoundaryErrorFixedConstant explicitSourceBudget ≤
-      (2 : ℝ) ^ (800000010 : ℕ) := by
+      (2 : ℝ) ^ (880010 : ℕ) := by
   unfold mixedBoundaryErrorFixedConstant
   have hAB :
       mixedSourceWeightBase ^ explicitSourceBudget *
           5 ^ mixedCanonicalRegularityExponent ≤
-        (2 : ℝ) ^ (800000000 : ℕ) * 32 :=
+        (2 : ℝ) ^ (880000 : ℕ) * 32 :=
     mul_le_mul mixedSourceBudgetPower_le
       (five_rpow_mixedRegularity_le.trans (by norm_num))
       (Real.rpow_nonneg (by norm_num) _)
@@ -4311,15 +4371,15 @@ private theorem mixedBoundaryErrorFixedConstant_le :
   calc
     9 * (mixedSourceWeightBase ^ explicitSourceBudget *
           5 ^ mixedCanonicalRegularityExponent) ≤
-        16 * ((2 : ℝ) ^ (800000000 : ℕ) * 32) := by
+        16 * ((2 : ℝ) ^ (880000 : ℕ) * 32) := by
       exact (mul_le_mul_of_nonneg_left hAB (by norm_num)).trans
         (mul_le_mul_of_nonneg_right (by norm_num : (9 : ℝ) ≤ 16)
           (by positivity))
-    _ = (2 : ℝ) ^ (800000009 : ℕ) := by
+    _ = (2 : ℝ) ^ (880009 : ℕ) := by
       rw [show (16 : ℝ) = 2 ^ (4 : ℕ) by norm_num,
         show (32 : ℝ) = 2 ^ (5 : ℕ) by norm_num,
         ← pow_add, ← pow_add]
-    _ ≤ (2 : ℝ) ^ (800000010 : ℕ) :=
+    _ ≤ (2 : ℝ) ^ (880010 : ℕ) :=
       pow_le_pow_right₀ (by norm_num) (by norm_num)
 
 private theorem mixedBoundaryInverseFactor_le :
@@ -4368,14 +4428,14 @@ private theorem mixedInverseLogSix_le :
 
 private theorem mixedTransitionMainAsymptoticConstant_le :
     mixedTransitionMainAsymptoticConstant explicitSourceBudget ≤
-      (2 : ℝ) ^ (800000170 : ℕ) := by
+      (2 : ℝ) ^ (880170 : ℕ) := by
   unfold mixedTransitionMainAsymptoticConstant
   calc
     mixedBoundaryMainFixedConstant explicitSourceBudget *
           mixedBoundaryProfileConstant *
           (1 / (2 * log 2)) ^
             (mixedCanonicalDyadicExponent + mixedBulkLogAbsorption) ≤
-        (2 : ℝ) ^ (800000130 : ℕ) * (2 : ℝ) ^ (34 : ℕ) *
+        (2 : ℝ) ^ (880130 : ℕ) * (2 : ℝ) ^ (34 : ℕ) *
           (2 : ℝ) ^ (1 : ℕ) := by
       have h1 := mul_le_mul mixedBoundaryMainFixedConstant_le
         mixedBoundaryProfileConstant_le mixedBoundaryProfileConstant_pos.le
@@ -4383,35 +4443,35 @@ private theorem mixedTransitionMainAsymptoticConstant_le :
       exact mul_le_mul h1
         (mixedBoundaryInverseFactor_le.trans_eq (by norm_num))
         (Real.rpow_nonneg (by positivity) _) (by positivity)
-    _ = (2 : ℝ) ^ (800000165 : ℕ) := by
+    _ = (2 : ℝ) ^ (880165 : ℕ) := by
       rw [← pow_add, ← pow_add]
-    _ ≤ (2 : ℝ) ^ (800000170 : ℕ) :=
+    _ ≤ (2 : ℝ) ^ (880170 : ℕ) :=
       pow_le_pow_right₀ (by norm_num) (by norm_num)
 
 private theorem mixedTransitionErrorAsymptoticConstant_le :
     mixedTransitionErrorAsymptoticConstant explicitSourceBudget ≤
-      (2 : ℝ) ^ (800000020 : ℕ) := by
+      (2 : ℝ) ^ (880020 : ℕ) := by
   unfold mixedTransitionErrorAsymptoticConstant
   calc
     mixedBoundaryErrorFixedConstant explicitSourceBudget *
           (1 / (2 * log 2)) ^ (-6 : ℝ) ≤
-        (2 : ℝ) ^ (800000010 : ℕ) * (2 : ℝ) ^ (6 : ℕ) :=
+        (2 : ℝ) ^ (880010 : ℕ) * (2 : ℝ) ^ (6 : ℕ) :=
       mul_le_mul mixedBoundaryErrorFixedConstant_le
         (mixedInverseLogSix_le.trans_eq (by norm_num))
         (Real.rpow_nonneg (by positivity) _) (by positivity)
-    _ = (2 : ℝ) ^ (800000016 : ℕ) := by rw [← pow_add]
-    _ ≤ (2 : ℝ) ^ (800000020 : ℕ) :=
+    _ = (2 : ℝ) ^ (880016 : ℕ) := by rw [← pow_add]
+    _ ≤ (2 : ℝ) ^ (880020 : ℕ) :=
       pow_le_pow_right₀ (by norm_num) (by norm_num)
 
 private theorem mixedTransitionMainConstant_le_scale :
     mixedTransitionMainAsymptoticConstant explicitSourceBudget ≤
-      (2 : ℝ) ^ (explicitScale / 2) :=
+      (2 : ℝ) ^ (explicitScale - 26) :=
   mixedTransitionMainAsymptoticConstant_le.trans
     (pow_le_pow_right₀ (by norm_num) (by norm_num [explicitScale]))
 
 private theorem mixedTransitionErrorConstant_le_scale :
     mixedTransitionErrorAsymptoticConstant explicitSourceBudget ≤
-      (2 : ℝ) ^ (explicitScale / 2) :=
+      (2 : ℝ) ^ (explicitScale - 26) :=
   mixedTransitionErrorAsymptoticConstant_le.trans
     (pow_le_pow_right₀ (by norm_num) (by norm_num [explicitScale]))
 
@@ -5358,15 +5418,15 @@ private theorem erdos327_fixed_gain_of_canonical_estimates
       _ ≤ (A.card : ℝ) := hcard'
 
 /-- The existing construction, at the concrete cutoff above, certifies the
-explicit rational gain `explicitEpsilon`.  The ambient threshold remains a
+explicit rational gain `optimizedEpsilon`.  The ambient threshold remains a
 finite existential because the terminal and positive-residual limits are
 not effectivized in this Level-1 certificate. -/
-theorem erdos327Conclusion_explicit :
+theorem erdos327Conclusion_optimized :
     ∃ N₀ : ℕ, ∀ N ≥ N₀,
       ∃ A : Finset ℕ,
         A ⊆ Erdos327.upto N ∧
         Erdos327.OneAdmissible A ∧
-        (1 / 2 + explicitEpsilon) * (N : ℝ) ≤ (A.card : ℝ) := by
+        (1 / 2 + optimizedEpsilon) * (N : ℝ) ≤ (A.card : ℝ) := by
   rcases explicit_exists_forall_card_rankBad_le_roughDensity with
     ⟨Ns, hsource⟩
   rcases explicit_exists_forall_sum_mixedRefined_add_one_le_roughDensity with
@@ -5459,39 +5519,37 @@ theorem erdos327Conclusion_explicit :
   rcases hN₀ N hN with ⟨A, hA, hAdm, hcard⟩
   refine ⟨A, hA, hAdm, ?_⟩
   have hgain :
-      (1 / 2 + explicitEpsilon) * (N : ℝ) ≤
+      (1 / 2 + optimizedEpsilon) * (N : ℝ) ≤
         (1 / 2 + roughDensity explicitL / 128) * (N : ℝ) :=
     mul_le_mul_of_nonneg_right
       (by
         simpa only [add_comm] using
-          add_le_add_left explicitEpsilon_le_final_gain (1 / 2))
+          add_le_add_left optimizedEpsilon_le_final_gain (1 / 2))
       (Nat.cast_nonneg N)
   exact hgain.trans hcard
 
-theorem erdos327Conclusion_with_explicitEpsilon :
+theorem erdos327Conclusion_with_optimizedEpsilon :
     Erdos327.Erdos327Conclusion := by
-  refine ⟨explicitEpsilon, explicitEpsilon_pos, ?_⟩
-  exact erdos327Conclusion_explicit
+  refine ⟨optimizedEpsilon, optimizedEpsilon_pos, ?_⟩
+  exact erdos327Conclusion_optimized
 
-
-end Analytic
 
 end
 
-end Erdos327.EffectiveAudit
+end Erdos327.Tuned.Analytic.OptimizedAudit
 
 /--
-info: 'Erdos327.EffectiveAudit.Analytic.erdos327Conclusion_explicit' depends on axioms: [propext,
+info: 'Erdos327.Tuned.Analytic.OptimizedAudit.erdos327Conclusion_optimized' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
 -/
 #guard_msgs in
-#print axioms Erdos327.EffectiveAudit.Analytic.erdos327Conclusion_explicit
+#print axioms Erdos327.Tuned.Analytic.OptimizedAudit.erdos327Conclusion_optimized
 
 /--
-info: 'Erdos327.EffectiveAudit.Analytic.erdos327Conclusion_with_explicitEpsilon' depends on axioms: [propext,
+info: 'Erdos327.Tuned.Analytic.OptimizedAudit.erdos327Conclusion_with_optimizedEpsilon' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
 -/
 #guard_msgs in
-#print axioms Erdos327.EffectiveAudit.Analytic.erdos327Conclusion_with_explicitEpsilon
+#print axioms Erdos327.Tuned.Analytic.OptimizedAudit.erdos327Conclusion_with_optimizedEpsilon

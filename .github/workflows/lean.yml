@@ -4,23 +4,50 @@ on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 240
     steps:
-      - uses: actions/checkout@v4
-      - uses: leanprover/lean-action@v1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Check exact certificates
+        run: |
+          python3 audit/finite_checks.py
+          python3 audit/effective_epsilon.py
+          python3 audit/optimized_lower_bound.py
+
+      - name: Check generated tuned proof
+        run: |
+          python3 audit/generate_tuned_stack.py
+          git diff --exit-code -- lean/Erdos327/Tuned.lean
+
+      - name: Build baseline Lean proof
+        uses: leanprover/lean-action@38fbc41a8c28c4cbaec22d7f7de508ec2e7c0dd9 # v1
         with:
           lake-package-directory: lean
           auto-config: false
           build: true
           test: false
           lint: false
-      - name: Check explicit epsilon certificate
+
+      - name: Build tuned Lean proof
         working-directory: lean
-        run: lake env lean ../audit/EffectiveEpsilon.lean
+        run: lake build Erdos327.Tuned
+
+      - name: Check public theorems and certificates
+        working-directory: lean
+        run: |
+          lake env lean ../audit/AxiomAudit.lean
+          lake env lean ../audit/EffectiveEpsilon.lean
+          lake env lean ../audit/OptimizedLowerBound.lean
